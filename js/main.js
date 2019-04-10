@@ -24,3 +24,76 @@ var onresize = function () {
 window.addEventListener('resize', onresize, false);
 onresize();
 Blockly.svgResize(workspace);
+
+Blockly.JavaScript.addReservedWords('code');
+Blockly.JavaScript.addReservedWords('highlightBlock');
+Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
+
+function initApi(interpreter, scope) {
+    // Add an API function for the alert() block.
+    var alertWrapper = function (text) {
+        return alert(arguments.length ? text : '');
+    };
+    interpreter.setProperty(scope, 'alert', interpreter.createNativeFunction(alertWrapper));
+
+    // Add an API function for the prompt() block.
+    var promptWrapper = function (text) {
+        return prompt(text);
+    };
+    interpreter.setProperty(scope, 'prompt', interpreter.createNativeFunction(promptWrapper));
+
+    // Add an API function for highlighting blocks.
+    var highlightWrapper = function (id) {
+        return workspace.highlightBlock(id);
+    };
+    interpreter.setProperty(scope, 'highlightBlock', interpreter.createNativeFunction(highlightWrapper));
+}
+
+var code = null;
+var myInterpreter = null;
+var runner = null;
+var runButton = document.getElementById('runButton');
+var stopButton = document.getElementById('stopButton');
+
+function codeChanged() {
+    code = Blockly.JavaScript.workspaceToCode(workspace);
+    resetInterpreter();
+}
+
+codeChanged();
+workspace.addChangeListener(function (event) {
+    if (!(event instanceof Blockly.Events.Ui)) {
+        codeChanged();
+    }
+});
+
+function runInterpreter() {
+    if (!myInterpreter) {
+        resetInterpreter();
+        runButton.disabled = 'disabled';
+        stopButton.disabled = '';
+        myInterpreter = new Interpreter(code, initApi);
+        runner = function () {
+            if (myInterpreter) {
+                var hasMore = myInterpreter.step();
+                if (hasMore) {
+                    setTimeout(runner, 0);
+                } else {
+                    resetInterpreter()
+                }
+            }
+        };
+        setTimeout(runner, 0);
+    }
+}
+
+function resetInterpreter() {
+    myInterpreter = null;
+    if (runner) {
+        clearTimeout(runner);
+        runner = null;
+    }
+    workspace.highlightBlock(null);
+    runButton.disabled = '';
+    stopButton.disabled = 'disabled';
+}

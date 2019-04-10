@@ -3,9 +3,16 @@ html, body {
     margin: 0;
 }
 
-#blocklyArea {
-    width: 100%;
+#workspace {
+    width: 30%;
     height: 100%;
+    float: left;
+}
+
+#blocklyArea {
+    width: 70%;
+    height: 100%;
+    float: left;
 }
 
 #blocklyDiv {
