@@ -25,7 +25,6 @@ window.addEventListener('resize', onresize, false);
 onresize();
 Blockly.svgResize(workspace);
 
-Blockly.JavaScript.addReservedWords('code');
 Blockly.JavaScript.addReservedWords('highlightBlock');
 Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 
@@ -54,6 +53,7 @@ var myInterpreter = null;
 var runner = null;
 var runButton = document.getElementById('runButton');
 var stopButton = document.getElementById('stopButton');
+var speedRange = document.getElementById('speedRange');
 
 function codeChanged() {
     code = Blockly.JavaScript.workspaceToCode(workspace);
@@ -77,13 +77,13 @@ function runInterpreter() {
             if (myInterpreter) {
                 var hasMore = myInterpreter.step();
                 if (hasMore) {
-                    setTimeout(runner, 0);
+                    setTimeout(runner, 100 - speedRange.value);
                 } else {
                     resetInterpreter()
                 }
             }
         };
-        setTimeout(runner, 0);
+        setTimeout(runner, 100 - speedRange.value);
     }
 }
 

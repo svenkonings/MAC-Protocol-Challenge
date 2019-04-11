@@ -12,9 +12,19 @@
     <link rel="stylesheet" type="text/css" href="css/main.css" media="all"/>
 </head>
 <body>
-<div id="workspace">
-    <button id="runButton" onclick="runInterpreter()">Simuleer!</button>
-    <button id="stopButton" onclick="resetInterpreter()">Stop!</button>
+<div id="simulation">
+    <div id="simulationVisualisation"></div>
+    <br>
+    <div id="simulationButtons">
+        <button id="runButton" onclick="runInterpreter()">Simuleer!</button>
+        <button id="stopButton" onclick="resetInterpreter()">Stop!</button>
+    </div>
+    <br>
+    <div id="simulationRange">
+        <label for="speedRange">Simulatie snelheid:</label>
+        <br>
+        <input id="speedRange" type="range" min="0" max="100" step="1" value="100">
+    </div>
 </div>
 <div id="blocklyArea"></div>
 <div id="blocklyDiv"></div>
