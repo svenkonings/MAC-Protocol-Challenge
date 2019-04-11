@@ -1,6 +1,10 @@
 var blocklyArea = document.getElementById('blocklyArea');
 var blocklyDiv = document.getElementById('blocklyDiv');
-var workspace = Blockly.inject(blocklyDiv, {toolbox: document.getElementById('toolbox')});
+var workspace = Blockly.inject(blocklyDiv, {
+    toolbox: document.getElementById('toolbox'),
+    grid: {spacing: 25, length: 3, colour: '#ccc', snap: true},
+    zoom: {controls: true, wheel: true, scaleSpeed: 1.05}
+});
 window.setTimeout(BlocklyStorage.restoreBlocks, 0);
 BlocklyStorage.backupOnUnload();
 
@@ -52,7 +56,6 @@ var code = null;
 var myInterpreter = null;
 var runner = null;
 var runButton = document.getElementById('runButton');
-var stopButton = document.getElementById('stopButton');
 var speedRange = document.getElementById('speedRange');
 
 function codeChanged() {
@@ -70,20 +73,21 @@ workspace.addChangeListener(function (event) {
 function runInterpreter() {
     if (!myInterpreter) {
         resetInterpreter();
-        runButton.disabled = 'disabled';
-        stopButton.disabled = '';
+        runButton.innerText = "Stop!";
+        runButton.className = "red";
+        runButton.onclick = resetInterpreter;
         myInterpreter = new Interpreter(code, initApi);
         runner = function () {
             if (myInterpreter) {
                 var hasMore = myInterpreter.step();
                 if (hasMore) {
-                    setTimeout(runner, 100 - speedRange.value);
+                    setTimeout(runner, speedRange.max - speedRange.value);
                 } else {
                     resetInterpreter()
                 }
             }
         };
-        setTimeout(runner, 100 - speedRange.value);
+        setTimeout(runner, speedRange.max - speedRange.value);
     }
 }
 
@@ -94,6 +98,7 @@ function resetInterpreter() {
         runner = null;
     }
     workspace.highlightBlock(null);
-    runButton.disabled = '';
-    stopButton.disabled = 'disabled';
+    runButton.innerText = "Simuleer!";
+    runButton.className = "green";
+    runButton.onclick = runInterpreter;
 }
