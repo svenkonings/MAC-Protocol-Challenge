@@ -26,6 +26,14 @@
 <div id="blocklyArea"></div>
 <div id="blocklyDiv"></div>
 <xml id="toolbox">
+    <category name="Systeem" colour="#5ba5a5">
+        <block type="system_number"></block>
+        <block type="system_timeslot"></block>
+        <block type="system_collision"></block>
+        <block type="system_has_data"></block>
+        <block type="system_send"></block>
+        <block type="system_no_send"></block>
+    </category>
     <category name="Vergelijken" colour="#5C81A6">
         <block type="controls_if"></block>
         <block type="logic_compare">
