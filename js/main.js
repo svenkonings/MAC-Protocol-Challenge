@@ -58,11 +58,11 @@ Blockly.JavaScript['system_timeslot'] = function () {
 };
 
 Blockly.JavaScript['system_collision'] = function () {
-    return ['isCollision(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+    return ['hasCollision(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_has_data'] = function () {
-    return ['hasData(currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+    return ['hasQueue(currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_send'] = function () {
@@ -114,6 +114,14 @@ var runButton = document.getElementById('runButton');
 var speedRange = document.getElementById('speedRange');
 
 var SYSTEM_COUNT = 4;
+var QUEUE_DATA = {
+    0: [5, 0, 10, 0],
+    5: [5, 5, 0, 0],
+    10: [0, 0, 0, 5],
+    15: [0, 0, 0, 5],
+    20: [0, 10, 0, 0],
+    25: [0, 0, 5, 0]
+};
 
 var systemQueue;
 var systemData;
@@ -126,10 +134,8 @@ function reset() {
     currentTimeslot = -1;
 }
 
-reset();
-
 function send() {
-    if (hasData(currentSystem)) {
+    if (hasQueue(currentSystem)) {
         systemData[currentTimeslot][currentSystem] = true;
         // TODO: Update page
     } else {
@@ -152,9 +158,8 @@ function nextSystem() {
 
 function nextTimeslot() {
     currentTimeslot++;
-    // TODO: Remove data from queue after successful send
-    // TODO: Actually check when we should stop
-    if (currentTimeslot < 10) {
+    updateQueue();
+    if (!noMoreQueue()) {
         systemData.push([]);
         currentSystem = 0;
         highlightSystem(currentSystem);
@@ -168,12 +173,52 @@ function highlightSystem(systemId) {
     // TODO: Update page
 }
 
-function hasData(systemId) {
-    return systemData[systemId] > 0;
+function updateQueue() {
+    var previousTimeslot = currentTimeslot - 1;
+    if (previousTimeslot >= 0 && successfulSend(previousTimeslot)) {
+        var sender = findFirstSend(previousTimeslot);
+        systemQueue[sender] -= 1;
+    }
+    addQueueData(currentTimeslot);
 }
 
+function addQueueData(timeslot) {
+    var newData = QUEUE_DATA[timeslot];
+    if (newData) {
+        for (var i = 0; i < systemQueue.length; i++) {
+            systemQueue[i] += newData[i];
+        }
+    }
+}
 
-function isCollision(timeslot) {
+function noMoreQueue() {
+    return currentTimeslot >= maxQueueTimeslot() && totalQueue() === 0;
+}
+
+function totalQueue() {
+    return systemQueue.reduce(function (a, b) {
+        return a + b;
+    }, 0);
+}
+
+function maxQueueTimeslot() {
+    return Math.max.apply(null, Object.keys(QUEUE_DATA));
+}
+
+function hasQueue(systemId) {
+    return systemQueue[systemId] > 0;
+}
+
+function findFirstSend(timeslot) {
+    var timeslotData = systemData[timeslot];
+    for (var i = 0; i < timeslotData.length; i++) {
+        if (timeslotData[i]) {
+            return i;
+        }
+    }
+}
+
+function sendCount(timeslot) {
     var sendCount = 0;
     var timeslotData = systemData[timeslot];
     for (var i = 0; i < timeslotData.length; i++) {
@@ -181,7 +226,15 @@ function isCollision(timeslot) {
             sendCount++
         }
     }
-    return sendCount < 2;
+    return sendCount;
+}
+
+function successfulSend(timeslot) {
+    return sendCount(timeslot) === 1;
+}
+
+function hasCollision(timeslot) {
+    return sendCount(timeslot) > 1;
 }
 
 function initApi(interpreter, scope) {
@@ -213,12 +266,12 @@ function initApi(interpreter, scope) {
         return highlightSystem(systemId);
     }));
 
-    interpreter.setProperty(scope, 'hasData', interpreter.createNativeFunction(function (systemId) {
-        return hasData(systemId);
+    interpreter.setProperty(scope, 'hasQueue', interpreter.createNativeFunction(function (systemId) {
+        return hasQueue(systemId);
     }));
 
-    interpreter.setProperty(scope, 'isCollision', interpreter.createNativeFunction(function (timeslot) {
-        return isCollision(timeslot);
+    interpreter.setProperty(scope, 'hasCollision', interpreter.createNativeFunction(function (timeslot) {
+        return hasCollision(timeslot);
     }));
 
     interpreter.setProperty(scope, 'currentSystem', interpreter.createNativeFunction(function () {
@@ -231,11 +284,12 @@ function initApi(interpreter, scope) {
 }
 
 function codeChanged() {
+    // TODO: Warning if result is undefined
     code =
         "reset();\n" +
         "while (nextTimeslot()) {\n" +
         "    for (var i = 0; i < " + SYSTEM_COUNT + "; i++) {\n" +
-        "        var result = runSystem();\n" +
+        "        var result = simulateSystem();\n" +
         "        if (result) {\n" +
         "            send();\n" +
         "        } else {\n" +
@@ -243,7 +297,7 @@ function codeChanged() {
         "        }\n" +
         "    }\n" +
         "}\n" +
-        "function runSystem() {\n" +
+        "function simulateSystem() {\n" +
         Blockly.JavaScript.workspaceToCode(workspace) +
         "}";
     resetInterpreter();
