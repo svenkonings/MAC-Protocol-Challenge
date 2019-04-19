@@ -1,6 +1,6 @@
 Blockly.defineBlocksWithJsonArray([
     {
-        "type": "system_number",
+        "type": "system_id",
         "message0": "Systeemnummer",
         "output": "Number",
         "colour": 160,
@@ -13,6 +13,14 @@ Blockly.defineBlocksWithJsonArray([
         "output": "Number",
         "colour": 160,
         "tooltip": "Geeft het huidige tijdslot terug",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_count",
+        "message0": "Aantal systemen",
+        "output": "Number",
+        "colour": 160,
+        "tooltip": "Geeft het aantal systemen terug",
         "helpUrl": ""
     },
     {
@@ -49,12 +57,16 @@ Blockly.defineBlocksWithJsonArray([
     }
 ]);
 
-Blockly.JavaScript['system_number'] = function () {
+Blockly.JavaScript['system_id'] = function () {
     return ['currentSystem()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_timeslot'] = function () {
     return ['currentTimeslot()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript['system_count'] = function () {
+    return ['systemCount()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_collision'] = function () {
@@ -280,6 +292,10 @@ function initApi(interpreter, scope) {
 
     interpreter.setProperty(scope, 'currentTimeslot', interpreter.createNativeFunction(function () {
         return currentTimeslot;
+    }));
+
+    interpreter.setProperty(scope, 'systemCount', interpreter.createNativeFunction(function () {
+        return SYSTEM_COUNT;
     }));
 }
 
