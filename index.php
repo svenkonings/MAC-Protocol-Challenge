@@ -46,10 +46,13 @@
 <xml id="toolbox">
     <category name="Systeem" colour="#5ba5a5">
         <block type="system_id"></block>
+        <block type="system_sender"></block>
+        <block type="system_has_data"></block>
         <block type="system_timeslot"></block>
         <block type="system_count"></block>
+        <block type="system_empty_send"></block>
+        <block type="system_success"></block>
         <block type="system_collision"></block>
-        <block type="system_has_data"></block>
         <block type="system_send"></block>
         <block type="system_no_send"></block>
     </category>

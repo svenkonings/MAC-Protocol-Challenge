@@ -4,7 +4,23 @@ Blockly.defineBlocksWithJsonArray([
         "message0": "Systeemnummer",
         "output": "Number",
         "colour": 160,
-        "tooltip": "Geef het nummer van het systeem terug.",
+        "tooltip": "Geeft het nummer van het systeem terug.",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_sender",
+        "message0": "Systeemnummer verstuurder vorig tijdslot",
+        "output": "Number",
+        "colour": 160,
+        "tooltip": "Geeft het systeemnummer terug van het systeem dat succesvol verstuurd heeft in het vorige tijdslot.",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_has_data",
+        "message0": "Heeft data",
+        "output": "Boolean",
+        "colour": 160,
+        "tooltip": "Geeft terug of het systeem data heeft of niet.",
         "helpUrl": ""
     },
     {
@@ -24,19 +40,27 @@ Blockly.defineBlocksWithJsonArray([
         "helpUrl": ""
     },
     {
+        "type": "system_empty_send",
+        "message0": "Niks verstuurd vorig tijdslot",
+        "output": "Boolean",
+        "colour": 160,
+        "tooltip": "Geeft terug of er een niks verstuurd was in het vorige tijdslot.",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_success",
+        "message0": "Succesvol verstuurd vorig tijdslot",
+        "output": "Boolean",
+        "colour": 160,
+        "tooltip": "Geeft terug of er succesvol verstuurd was in het vorige tijdslot.",
+        "helpUrl": ""
+    },
+    {
         "type": "system_collision",
         "message0": "Collisie vorig tijdslot",
         "output": "Boolean",
         "colour": 160,
-        "tooltip": "Geeft  terug of er een collisie was in het vorige tijdslot.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_has_data",
-        "message0": "Heeft data",
-        "output": "Boolean",
-        "colour": 160,
-        "tooltip": "Geeft terug of het systeem data heeft of niet.",
+        "tooltip": "Geeft terug of er een collisie was in het vorige tijdslot.",
         "helpUrl": ""
     },
     {
@@ -61,6 +85,14 @@ Blockly.JavaScript['system_id'] = function () {
     return ['currentSystem()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
+Blockly.JavaScript['system_sender'] = function () {
+    return ['getSender(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript['system_has_data'] = function () {
+    return ['hasQueue(currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
 Blockly.JavaScript['system_timeslot'] = function () {
     return ['currentTimeslot()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
@@ -69,12 +101,16 @@ Blockly.JavaScript['system_count'] = function () {
     return ['systemCount()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
-Blockly.JavaScript['system_collision'] = function () {
-    return ['hasCollision(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+Blockly.JavaScript['system_empty_send'] = function () {
+    return ['isEmptySend(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
-Blockly.JavaScript['system_has_data'] = function () {
-    return ['hasQueue(currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+Blockly.JavaScript['system_success'] = function () {
+    return ['isSuccess(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript['system_collision'] = function () {
+    return ['isCollision(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_send'] = function () {
@@ -214,13 +250,12 @@ function highlightSystem(systemId) {
 function updateQueue() {
     var previousTimeslot = currentTimeslot - 1;
     if (previousTimeslot >= 0) {
-        var send = sendCount(previousTimeslot);
         var sendCell = tableBody.rows[previousTimeslot].cells[SYSTEM_COUNT + 1];
-        if (send === 0) {
+        if (isEmptySend(previousTimeslot)) {
             sendCell.innerHTML = '-';
-        } else if (send === 1) {
+        } else if (isSuccess(previousTimeslot)) {
             sendCell.innerHTML = '&check;';
-            var sender = findFirstSend(previousTimeslot);
+            var sender = getSender(previousTimeslot);
             systemQueue[sender] -= 1;
         } else {
             sendCell.innerHTML = '&cross;';
@@ -256,16 +291,10 @@ function hasQueue(systemId) {
     return systemQueue[systemId] > 0;
 }
 
-function findFirstSend(timeslot) {
-    var timeslotData = systemData[timeslot];
-    for (var i = 0; i < timeslotData.length; i++) {
-        if (timeslotData[i]) {
-            return i;
-        }
-    }
-}
-
 function sendCount(timeslot) {
+    if (timeslot < 0) {
+        return 0;
+    }
     var sendCount = 0;
     var timeslotData = systemData[timeslot];
     for (var i = 0; i < timeslotData.length; i++) {
@@ -276,8 +305,27 @@ function sendCount(timeslot) {
     return sendCount;
 }
 
-function hasCollision(timeslot) {
+function isEmptySend(timeslot) {
+    return sendCount(timeslot) === 0;
+}
+
+function isSuccess(timeslot) {
+    return sendCount(timeslot) === 1;
+}
+
+function isCollision(timeslot) {
     return sendCount(timeslot) > 1;
+}
+
+function getSender(timeslot) {
+    if (isSuccess(timeslot)) {
+        var timeslotData = systemData[timeslot];
+        for (var i = 0; i < timeslotData.length; i++) {
+            if (timeslotData[i]) {
+                return i;
+            }
+        }
+    }
 }
 
 function initApi(interpreter, scope) {
@@ -309,8 +357,20 @@ function initApi(interpreter, scope) {
         return hasQueue(systemId);
     }));
 
-    interpreter.setProperty(scope, 'hasCollision', interpreter.createNativeFunction(function (timeslot) {
-        return hasCollision(timeslot);
+    interpreter.setProperty(scope, 'isEmptySend', interpreter.createNativeFunction(function (timeslot) {
+        return isEmptySend(timeslot);
+    }));
+
+    interpreter.setProperty(scope, 'isSuccess', interpreter.createNativeFunction(function (timeslot) {
+        return isSuccess(timeslot);
+    }));
+
+    interpreter.setProperty(scope, 'isCollision', interpreter.createNativeFunction(function (timeslot) {
+        return isCollision(timeslot);
+    }));
+
+    interpreter.setProperty(scope, 'getSender', interpreter.createNativeFunction(function (timeslot) {
+        return getSender(timeslot);
     }));
 
     interpreter.setProperty(scope, 'currentSystem', interpreter.createNativeFunction(function () {
