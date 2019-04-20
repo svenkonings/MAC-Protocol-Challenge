@@ -14,9 +14,9 @@
 <body>
 <div id="simulation">
     <div id="simulationVisualisation">
-        <table>
+        <table id="headerTable">
             <thead>
-            <tr id="simulationTableHead">
+            <tr id="tableHead">
                 <td>Timeslot</td>
                 <td>Systeem 1</td>
                 <td>Systeem 2</td>
@@ -25,8 +25,12 @@
                 <td>Succes</td>
             </tr>
             </thead>
-            <tbody id="simulationTableBody"></tbody>
         </table>
+        <div id="simulationBody">
+            <table id="bodyTable">
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
     </div>
     <div id="simulationControls">
         <br>

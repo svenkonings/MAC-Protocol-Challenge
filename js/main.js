@@ -85,6 +85,10 @@ Blockly.JavaScript['system_no_send'] = function () {
     return 'return false;\n';
 };
 
+var simulationVisualisation = document.getElementById('simulationVisualisation');
+var simulationBody = document.getElementById('simulationBody');
+var headerTable = document.getElementById('headerTable');
+var bodyTable = document.getElementById('bodyTable');
 var blocklyArea = document.getElementById('blocklyArea');
 var blocklyDiv = document.getElementById('blocklyDiv');
 var workspace = Blockly.inject(blocklyDiv, {
@@ -96,6 +100,9 @@ setTimeout(BlocklyStorage.restoreBlocks, 0);
 BlocklyStorage.backupOnUnload();
 
 var onresize = function () {
+    simulationBody.style.height = simulationVisualisation.clientHeight - headerTable.clientHeight + 'px';
+    headerTable.style.width = bodyTable.clientWidth + 'px';
+
     // Compute the absolute coordinates and dimensions of blocklyArea.
     var element = blocklyArea;
     var x = 0;
@@ -122,9 +129,9 @@ Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 var code = null;
 var myInterpreter = null;
 var runner = null;
-var simulationVisualisation = document.getElementById('simulationVisualisation');
-var tableHead = document.getElementById('simulationTableHead');
-var tableBody = document.getElementById('simulationTableBody');
+var table = document.getElementById('simulationBody');
+var tableHead = document.getElementById('tableHead');
+var tableBody = document.getElementById('tableBody');
 var runButton = document.getElementById('runButton');
 var speedRange = document.getElementById('speedRange');
 
@@ -177,10 +184,14 @@ function nextTimeslot() {
     currentTimeslot++;
     updateQueue();
     if (!noMoreQueue()) {
+        var atBottom = table.scrollHeight - (table.clientHeight + table.scrollTop) === 0;
         var row = tableBody.insertRow(currentTimeslot);
         row.insertCell(0).innerHTML = currentTimeslot;
         for (var i = 1; i < SYSTEM_COUNT + 2; i++) {
             row.insertCell(i);
+        }
+        if (atBottom) {
+            table.scrollTop = table.scrollHeight - table.clientHeight;
         }
         systemData.push([]);
         currentSystem = 0;
