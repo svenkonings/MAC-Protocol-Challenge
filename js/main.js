@@ -129,7 +129,6 @@ Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 var code = null;
 var myInterpreter = null;
 var runner = null;
-var table = document.getElementById('simulationBody');
 var tableHead = document.getElementById('tableHead');
 var tableBody = document.getElementById('tableBody');
 var runButton = document.getElementById('runButton');
@@ -184,14 +183,14 @@ function nextTimeslot() {
     currentTimeslot++;
     updateQueue();
     if (!noMoreQueue()) {
-        var atBottom = table.scrollHeight - (table.clientHeight + table.scrollTop) === 0;
+        var atBottom = simulationBody.scrollHeight - (simulationBody.clientHeight + simulationBody.scrollTop) <= 1;
         var row = tableBody.insertRow(currentTimeslot);
         row.insertCell(0).innerHTML = currentTimeslot;
         for (var i = 1; i < SYSTEM_COUNT + 2; i++) {
             row.insertCell(i);
         }
         if (atBottom) {
-            table.scrollTop = table.scrollHeight - table.clientHeight;
+            simulationBody.scrollTop = (simulationBody.scrollHeight - simulationBody.clientHeight) + 1;
         }
         systemData.push([]);
         currentSystem = 0;
