@@ -18,10 +18,10 @@
             <thead>
             <tr id="tableHead">
                 <td>Timeslot</td>
+                <td>Systeem 0</td>
                 <td>Systeem 1</td>
                 <td>Systeem 2</td>
                 <td>Systeem 3</td>
-                <td>Systeem 4</td>
                 <td>Succes</td>
             </tr>
             </thead>
