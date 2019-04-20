@@ -122,6 +122,9 @@ Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 var code = null;
 var myInterpreter = null;
 var runner = null;
+var simulationVisualisation = document.getElementById('simulationVisualisation');
+var tableHead = document.getElementById('simulationTableHead');
+var tableBody = document.getElementById('simulationTableBody');
 var runButton = document.getElementById('runButton');
 var speedRange = document.getElementById('speedRange');
 
@@ -140,26 +143,28 @@ var systemData;
 var currentSystem;
 var currentTimeslot;
 
-function reset() {
+function resetSystem() {
     systemQueue = [0, 0, 0, 0];
     systemData = [];
     currentTimeslot = -1;
+    tableBody.innerHTML = '';
 }
 
 function send() {
     if (hasQueue(currentSystem)) {
         systemData[currentTimeslot][currentSystem] = true;
-        // TODO: Update page
+        tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = 'green';
     } else {
         // TODO: Warning: System tried to sent but there was no data
         systemData[currentTimeslot][currentSystem] = false;
+        tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = 'red';
     }
     nextSystem();
 }
 
 function noSend() {
     systemData[currentTimeslot][currentSystem] = false;
-    // TODO: Update page
+    tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = 'red';
     nextSystem();
 }
 
@@ -172,6 +177,11 @@ function nextTimeslot() {
     currentTimeslot++;
     updateQueue();
     if (!noMoreQueue()) {
+        var row = tableBody.insertRow(currentTimeslot);
+        row.insertCell(0).innerHTML = currentTimeslot;
+        for (var i = 1; i < SYSTEM_COUNT + 2; i++) {
+            row.insertCell(i);
+        }
         systemData.push([]);
         currentSystem = 0;
         highlightSystem(currentSystem);
@@ -182,14 +192,29 @@ function nextTimeslot() {
 }
 
 function highlightSystem(systemId) {
-    // TODO: Update page
+    for (var i = 0; i < SYSTEM_COUNT; i++) {
+        if (systemId === i) {
+            tableHead.cells[i + 1].className = 'blue';
+        } else {
+            tableHead.cells[i + 1].className = '';
+        }
+    }
 }
 
 function updateQueue() {
     var previousTimeslot = currentTimeslot - 1;
-    if (previousTimeslot >= 0 && successfulSend(previousTimeslot)) {
-        var sender = findFirstSend(previousTimeslot);
-        systemQueue[sender] -= 1;
+    if (previousTimeslot >= 0) {
+        var send = sendCount(previousTimeslot);
+        var sendCell = tableBody.rows[previousTimeslot].cells[SYSTEM_COUNT + 1];
+        if (send === 0) {
+            sendCell.innerHTML = '-';
+        } else if (send === 1) {
+            sendCell.innerHTML = '&check;';
+            var sender = findFirstSend(previousTimeslot);
+            systemQueue[sender] -= 1;
+        } else {
+            sendCell.innerHTML = '&cross;';
+        }
     }
     addQueueData(currentTimeslot);
 }
@@ -241,10 +266,6 @@ function sendCount(timeslot) {
     return sendCount;
 }
 
-function successfulSend(timeslot) {
-    return sendCount(timeslot) === 1;
-}
-
 function hasCollision(timeslot) {
     return sendCount(timeslot) > 1;
 }
@@ -252,10 +273,6 @@ function hasCollision(timeslot) {
 function initApi(interpreter, scope) {
     interpreter.setProperty(scope, 'highlightBlock', interpreter.createNativeFunction(function (blockId) {
         return workspace.highlightBlock(blockId);
-    }));
-
-    interpreter.setProperty(scope, 'reset', interpreter.createNativeFunction(function () {
-        return reset();
     }));
 
     interpreter.setProperty(scope, 'send', interpreter.createNativeFunction(function () {
@@ -302,7 +319,6 @@ function initApi(interpreter, scope) {
 function codeChanged() {
     // TODO: Warning if result is undefined
     code =
-        "reset();\n" +
         "while (nextTimeslot()) {\n" +
         "    for (var i = 0; i < " + SYSTEM_COUNT + "; i++) {\n" +
         "        var result = simulateSystem();\n" +
@@ -329,6 +345,7 @@ workspace.addChangeListener(function (event) {
 function runInterpreter() {
     if (!myInterpreter) {
         resetInterpreter();
+        resetSystem();
         runButton.innerText = "Stop!";
         runButton.className = "red";
         runButton.onclick = resetInterpreter;

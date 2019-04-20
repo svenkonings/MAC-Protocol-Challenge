@@ -13,7 +13,21 @@
 </head>
 <body>
 <div id="simulation">
-    <div id="simulationVisualisation"></div>
+    <div id="simulationVisualisation">
+        <table>
+            <thead>
+            <tr id="simulationTableHead">
+                <td>Timeslot</td>
+                <td>Systeem 1</td>
+                <td>Systeem 2</td>
+                <td>Systeem 3</td>
+                <td>Systeem 4</td>
+                <td>Succes</td>
+            </tr>
+            </thead>
+            <tbody id="simulationTableBody"></tbody>
+        </table>
+    </div>
     <div id="simulationControls">
         <br>
         <button id="runButton" class="green" onclick="runInterpreter()">Simuleer!</button>

@@ -16,6 +16,8 @@ html, body {
 #simulationVisualisation {
     width: 100%;
     height: 100%;
+    overflow-x: auto;
+    overflow-y: scroll;
     background-color: #9E9E9E;
 }
 
@@ -41,12 +43,21 @@ html, body {
     display: none;
 }
 
+.red {
+    background-color: #EF5350;
+}
+
 .green {
     background-color: #4CAF50;
 }
 
-.red {
-    background-color: #EF5350;
+.blue {
+    background-color: #2196F3;
+}
+
+table {
+    width: 100%;
+    font-family: sans-serif;
 }
 
 button {
