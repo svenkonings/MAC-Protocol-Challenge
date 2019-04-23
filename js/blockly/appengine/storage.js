@@ -81,7 +81,7 @@ BlocklyStorage.link = function(opt_workspace) {
     }
   }
   var data = Blockly.Xml.domToText(xml);
-  BlocklyStorage.makeRequest_('/storage', 'xml', data, workspace);
+  BlocklyStorage.makeRequest_('https://mac-protocol-challenge.appspot.com/storage', 'xml', data, workspace);
 };
 
 /**
@@ -91,7 +91,7 @@ BlocklyStorage.link = function(opt_workspace) {
  */
 BlocklyStorage.retrieveXml = function(key, opt_workspace) {
   var workspace = opt_workspace || Blockly.getMainWorkspace();
-  BlocklyStorage.makeRequest_('/storage', 'key', key, workspace);
+  BlocklyStorage.makeRequest_('https://mac-protocol-challenge.appspot.com/storage', 'key', key, workspace);
 };
 
 /**
@@ -169,10 +169,10 @@ BlocklyStorage.monitorChanges_ = function(workspace) {
     var xmlText = Blockly.Xml.domToText(xmlDom);
     if (startXmlText != xmlText) {
       window.location.hash = '';
-      workspace.removeChangeListener(bindData);
+      workspace.removeChangeListener(change);
     }
   }
-  var bindData = workspace.addChangeListener(change);
+  workspace.addChangeListener(change);
 };
 
 /**

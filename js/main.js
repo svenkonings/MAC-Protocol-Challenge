@@ -1,3 +1,8 @@
+BlocklyStorage.HTTPREQUEST_ERROR = 'Er is een probleem opgetreden tijdens het verwerken van het verzoek.\n';
+BlocklyStorage.LINK_ALERT = 'Deel je blokken via deze koppeling:\n\n%1';
+BlocklyStorage.HASH_ERROR = '\"%1\" komt helaas niet overeen met een opgeslagen bestand.';
+BlocklyStorage.XML_ERROR = 'Je opgeslagen bestand kan niet geladen worden. Is het misschien gemaakt met een andere versie van Blockly?';
+
 Blockly.defineBlocksWithJsonArray([
     {
         "type": "system_id",
@@ -132,7 +137,11 @@ var workspace = Blockly.inject(blocklyDiv, {
     grid: {spacing: 25, length: 3, colour: '#ccc', snap: true},
     zoom: {controls: true, wheel: true, scaleSpeed: 1.05}
 });
-setTimeout(BlocklyStorage.restoreBlocks, 0);
+if ('BlocklyStorage' in window && window.location.hash.length > 1) {
+    BlocklyStorage.retrieveXml(window.location.hash.substring(1));
+} else {
+    setTimeout(BlocklyStorage.restoreBlocks, 0);
+}
 BlocklyStorage.backupOnUnload();
 
 var onresize = function () {
