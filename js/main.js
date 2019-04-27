@@ -90,6 +90,8 @@ Blockly.defineBlocksWithJsonArray([
     }
 ]);
 
+// TODO: Add print block
+
 Blockly.JavaScript['system_id'] = function () {
     return ['currentSystem()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
@@ -130,7 +132,7 @@ Blockly.JavaScript['system_no_send'] = function () {
     return 'return false;\n';
 };
 
-Blockly.JavaScript.addReservedWords('highlightBlock,send,noSend,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,isCollision,getSender,currentSystem,currentTimeslot,systemCount');
+Blockly.JavaScript.addReservedWords('highlightBlock,send,noSend,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,isCollision,getSender,currentSystem,currentTimeslot,systemCount,infiniteLoopCount');
 Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 
 function initApi(interpreter, scope) {
@@ -253,6 +255,7 @@ var runner = null;
 var tableHead = document.getElementById('tableHead');
 var tableBody = document.getElementById('tableBody');
 var runButton = document.getElementById('runButton');
+var speedCheck = document.getElementById('speedCheck');
 var speedRange = document.getElementById('speedRange');
 
 for (var i = 0; i < SYSTEM_COUNT; i++) {
@@ -418,12 +421,13 @@ function codeChanged() {
     var variableCode = '';
     var systemCode = '';
 
-    var blocklyCode = Blockly.JavaScript.workspaceToCode(workspace).split('\n\n\n');
-    if (blocklyCode.length === 1) {
-        systemCode = blocklyCode[0];
-    } else if (blocklyCode.length === 2) {
-        var variableNames = blocklyCode[0].slice(4, -1).split(', ');
-        systemCode = blocklyCode[1];
+    var blocklyCode = Blockly.JavaScript.workspaceToCode(workspace);
+    var splitCode = blocklyCode.split('\n\n\n');
+    if (splitCode.length === 1) {
+        systemCode = splitCode[0];
+    } else if (splitCode.length === 2) {
+        var variableNames = splitCode[0].slice(4, -1).split(', ');
+        systemCode = splitCode[1];
 
         for (var i = 0; i < variableNames.length; i++) {
             var variableName = variableNames[i];
@@ -431,12 +435,14 @@ function codeChanged() {
             systemCode = systemCode.replace(new RegExp(variableName, 'g'), variableName + '[currentSystem()]');
         }
     } else {
-        // TODO: Show warning
+        // TODO: Log error
+        systemCode = blocklyCode;
     }
     code = variableCode +
-        // TODO: Warning if result is undefined
+        "var infiniteLoopCount = 0;\n" +
         "while (nextTimeslot()) {\n" +
         "    for (var i = 0; i < " + SYSTEM_COUNT + "; i++) {\n" +
+        // TODO: Warning if result is undefined
         "        var result = simulateSystem();\n" +
         "        if (result) {\n" +
         "            send();\n" +
@@ -444,6 +450,12 @@ function codeChanged() {
         "            noSend();\n" +
         "        }\n" +
         "    }\n" +
+        "   if (isSuccess(currentTimeslot())) {\n" +
+        "      infiniteLoopCount = 0;\n" +
+        // TODO: Warning if max count hit
+        "   } else if (++infiniteLoopCount > 100){\n" +
+        "      break;\n" +
+        "   }\n" +
         "}\n" +
         "function simulateSystem() {\n" +
         systemCode +
@@ -458,6 +470,10 @@ workspace.addChangeListener(function (event) {
     }
 });
 
+function checkChanged() {
+    speedRange.disabled = !speedCheck.checked;
+}
+
 function runInterpreter() {
     if (!myInterpreter) {
         resetInterpreter();
@@ -468,9 +484,15 @@ function runInterpreter() {
         myInterpreter = new Interpreter(code, initApi);
         runner = function () {
             if (myInterpreter) {
-                var hasMore = myInterpreter.step();
+                var timeout = speedRange.max - speedRange.value;
+                var hasMore;
+                if (speedCheck.checked) {
+                    hasMore = myInterpreter.step();
+                } else {
+                    hasMore = myInterpreter.run();
+                }
                 if (hasMore) {
-                    setTimeout(runner, speedRange.max - speedRange.value);
+                    setTimeout(runner, timeout);
                 } else {
                     resetInterpreter();
                 }

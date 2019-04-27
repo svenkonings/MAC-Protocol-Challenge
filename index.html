@@ -33,7 +33,8 @@
         <button id="runButton" class="green" onclick="runInterpreter()">Simuleer!</button>
         <button id="shareButton" class="blue" onclick="BlocklyStorage.link()">Link delen!</button>
         <br><br>
-        <label for="speedRange">Simulatie snelheid:</label>
+        <input aria-label="Simulatie sneldheid" type="checkbox" id="speedCheck" onclick="checkChanged();" checked><!--
+     --><label for="speedRange">Simulatie snelheid:</label>
         <br>
         <input id="speedRange" type="range" min="0" max="100" step="1" value="100">
     </div>
