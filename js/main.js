@@ -1,3 +1,7 @@
+/*----------------------------------------------------------------------------------------------------------------------
+                                                    Initialisation
+----------------------------------------------------------------------------------------------------------------------*/
+
 BlocklyStorage.HTTPREQUEST_ERROR = 'Er is een probleem opgetreden tijdens het verwerken van het verzoek.\n';
 BlocklyStorage.LINK_ALERT = 'Deel je blokken via deze koppeling:\n\n%1';
 BlocklyStorage.HASH_ERROR = '\"%1\" komt helaas niet overeen met een opgeslagen bestand.';
@@ -126,6 +130,67 @@ Blockly.JavaScript['system_no_send'] = function () {
     return 'return false;\n';
 };
 
+Blockly.JavaScript.addReservedWords('highlightBlock,send,noSend,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,isCollision,getSender,currentSystem,currentTimeslot,systemCount');
+Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
+
+function initApi(interpreter, scope) {
+    interpreter.setProperty(scope, 'highlightBlock', interpreter.createNativeFunction(function (blockId) {
+        return workspace.highlightBlock(blockId);
+    }));
+
+    interpreter.setProperty(scope, 'send', interpreter.createNativeFunction(function () {
+        return send();
+    }));
+
+    interpreter.setProperty(scope, 'noSend', interpreter.createNativeFunction(function () {
+        return noSend();
+    }));
+
+    interpreter.setProperty(scope, 'nextSystem', interpreter.createNativeFunction(function () {
+        return nextSystem();
+    }));
+
+    interpreter.setProperty(scope, 'nextTimeslot', interpreter.createNativeFunction(function () {
+        return nextTimeslot();
+    }));
+
+    interpreter.setProperty(scope, 'highlightSystem', interpreter.createNativeFunction(function (systemId) {
+        return highlightSystem(systemId);
+    }));
+
+    interpreter.setProperty(scope, 'hasQueue', interpreter.createNativeFunction(function (systemId) {
+        return hasQueue(systemId);
+    }));
+
+    interpreter.setProperty(scope, 'isEmptySend', interpreter.createNativeFunction(function (timeslot) {
+        return isEmptySend(timeslot);
+    }));
+
+    interpreter.setProperty(scope, 'isSuccess', interpreter.createNativeFunction(function (timeslot) {
+        return isSuccess(timeslot);
+    }));
+
+    interpreter.setProperty(scope, 'isCollision', interpreter.createNativeFunction(function (timeslot) {
+        return isCollision(timeslot);
+    }));
+
+    interpreter.setProperty(scope, 'getSender', interpreter.createNativeFunction(function (timeslot) {
+        return getSender(timeslot);
+    }));
+
+    interpreter.setProperty(scope, 'currentSystem', interpreter.createNativeFunction(function () {
+        return currentSystem;
+    }));
+
+    interpreter.setProperty(scope, 'currentTimeslot', interpreter.createNativeFunction(function () {
+        return currentTimeslot;
+    }));
+
+    interpreter.setProperty(scope, 'systemCount', interpreter.createNativeFunction(function () {
+        return SYSTEM_COUNT;
+    }));
+}
+
 var simulationVisualisation = document.getElementById('simulationVisualisation');
 var simulationBody = document.getElementById('simulationBody');
 var headerTable = document.getElementById('headerTable');
@@ -168,8 +233,9 @@ addEventListener('resize', onresize, false);
 onresize();
 Blockly.svgResize(workspace);
 
-Blockly.JavaScript.addReservedWords('highlightBlock');
-Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
+/*----------------------------------------------------------------------------------------------------------------------
+                                                      Simulation
+----------------------------------------------------------------------------------------------------------------------*/
 
 var SYSTEM_COUNT = 4;
 var QUEUE_DATA = {
@@ -348,67 +414,27 @@ function getSender(timeslot) {
     }
 }
 
-function initApi(interpreter, scope) {
-    interpreter.setProperty(scope, 'highlightBlock', interpreter.createNativeFunction(function (blockId) {
-        return workspace.highlightBlock(blockId);
-    }));
-
-    interpreter.setProperty(scope, 'send', interpreter.createNativeFunction(function () {
-        return send();
-    }));
-
-    interpreter.setProperty(scope, 'noSend', interpreter.createNativeFunction(function () {
-        return noSend();
-    }));
-
-    interpreter.setProperty(scope, 'nextSystem', interpreter.createNativeFunction(function () {
-        return nextSystem();
-    }));
-
-    interpreter.setProperty(scope, 'nextTimeslot', interpreter.createNativeFunction(function () {
-        return nextTimeslot();
-    }));
-
-    interpreter.setProperty(scope, 'highlightSystem', interpreter.createNativeFunction(function (systemId) {
-        return highlightSystem(systemId);
-    }));
-
-    interpreter.setProperty(scope, 'hasQueue', interpreter.createNativeFunction(function (systemId) {
-        return hasQueue(systemId);
-    }));
-
-    interpreter.setProperty(scope, 'isEmptySend', interpreter.createNativeFunction(function (timeslot) {
-        return isEmptySend(timeslot);
-    }));
-
-    interpreter.setProperty(scope, 'isSuccess', interpreter.createNativeFunction(function (timeslot) {
-        return isSuccess(timeslot);
-    }));
-
-    interpreter.setProperty(scope, 'isCollision', interpreter.createNativeFunction(function (timeslot) {
-        return isCollision(timeslot);
-    }));
-
-    interpreter.setProperty(scope, 'getSender', interpreter.createNativeFunction(function (timeslot) {
-        return getSender(timeslot);
-    }));
-
-    interpreter.setProperty(scope, 'currentSystem', interpreter.createNativeFunction(function () {
-        return currentSystem;
-    }));
-
-    interpreter.setProperty(scope, 'currentTimeslot', interpreter.createNativeFunction(function () {
-        return currentTimeslot;
-    }));
-
-    interpreter.setProperty(scope, 'systemCount', interpreter.createNativeFunction(function () {
-        return SYSTEM_COUNT;
-    }));
-}
-
 function codeChanged() {
-    // TODO: Warning if result is undefined
-    code =
+    var variableCode = '';
+    var systemCode = '';
+
+    var blocklyCode = Blockly.JavaScript.workspaceToCode(workspace).split('\n\n\n');
+    if (blocklyCode.length === 1) {
+        systemCode = blocklyCode[0];
+    } else if (blocklyCode.length === 2) {
+        var variableNames = blocklyCode[0].slice(4, -1).split(', ');
+        systemCode = blocklyCode[1];
+
+        for (var i = 0; i < variableNames.length; i++) {
+            var variableName = variableNames[i];
+            variableCode += 'var ' + variableName + ' = [];\n';
+            systemCode = systemCode.replace(new RegExp(variableName, 'g'), variableName + '[currentSystem()]');
+        }
+    } else {
+        // TODO: Show warning
+    }
+    code = variableCode +
+        // TODO: Warning if result is undefined
         "while (nextTimeslot()) {\n" +
         "    for (var i = 0; i < " + SYSTEM_COUNT + "; i++) {\n" +
         "        var result = simulateSystem();\n" +
@@ -420,7 +446,7 @@ function codeChanged() {
         "    }\n" +
         "}\n" +
         "function simulateSystem() {\n" +
-        Blockly.JavaScript.workspaceToCode(workspace) +
+        systemCode +
         "}";
     resetInterpreter();
 }
