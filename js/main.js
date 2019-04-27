@@ -171,14 +171,6 @@ Blockly.svgResize(workspace);
 Blockly.JavaScript.addReservedWords('highlightBlock');
 Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 
-var code = null;
-var myInterpreter = null;
-var runner = null;
-var tableHead = document.getElementById('tableHead');
-var tableBody = document.getElementById('tableBody');
-var runButton = document.getElementById('runButton');
-var speedRange = document.getElementById('speedRange');
-
 var SYSTEM_COUNT = 4;
 var QUEUE_DATA = {
     0: [5, 0, 10, 0],
@@ -189,13 +181,28 @@ var QUEUE_DATA = {
     25: [0, 0, 5, 0]
 };
 
+var code = null;
+var myInterpreter = null;
+var runner = null;
+var tableHead = document.getElementById('tableHead');
+var tableBody = document.getElementById('tableBody');
+var runButton = document.getElementById('runButton');
+var speedRange = document.getElementById('speedRange');
+
+for (var i = 0; i < SYSTEM_COUNT; i++) {
+    tableHead.insertCell(i + 1).innerHTML = 'Systeem ' + i;
+}
+
 var systemQueue;
 var systemData;
 var currentSystem;
 var currentTimeslot;
 
 function resetSystem() {
-    systemQueue = [0, 0, 0, 0];
+    systemQueue = [];
+    for (var i = 0; i < SYSTEM_COUNT; i++) {
+        systemQueue[i] = 0;
+    }
     systemData = [];
     currentTimeslot = -1;
     tableBody.innerHTML = '';
@@ -228,21 +235,25 @@ function nextTimeslot() {
     currentTimeslot++;
     updateQueue();
     if (!noMoreQueue()) {
-        var atBottom = simulationBody.scrollHeight - (simulationBody.clientHeight + simulationBody.scrollTop) <= 1;
-        var row = tableBody.insertRow(currentTimeslot);
-        row.insertCell(0).innerHTML = currentTimeslot;
-        for (var i = 1; i < SYSTEM_COUNT + 2; i++) {
-            row.insertCell(i);
-        }
-        if (atBottom) {
-            simulationBody.scrollTop = (simulationBody.scrollHeight - simulationBody.clientHeight) + 1;
-        }
+        addRow();
         systemData.push([]);
         currentSystem = 0;
         highlightSystem(currentSystem);
         return true;
     } else {
         return false;
+    }
+}
+
+function addRow() {
+    var atBottom = simulationBody.scrollHeight - (simulationBody.clientHeight + simulationBody.scrollTop) <= 1;
+    var row = tableBody.insertRow(currentTimeslot);
+    row.insertCell(0).innerHTML = currentTimeslot;
+    for (var i = 1; i < SYSTEM_COUNT + 2; i++) {
+        row.insertCell(i);
+    }
+    if (atBottom) {
+        simulationBody.scrollTop = (simulationBody.scrollHeight - simulationBody.clientHeight) + 1;
     }
 }
 
