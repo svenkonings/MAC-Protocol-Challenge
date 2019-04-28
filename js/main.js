@@ -204,10 +204,10 @@ var workspace = Blockly.inject(blocklyDiv, {
     grid: {spacing: 25, length: 3, colour: '#ccc', snap: true},
     zoom: {controls: true, wheel: true, scaleSpeed: 1.05}
 });
-if ('BlocklyStorage' in window && window.location.hash.length > 1) {
+if (window.location.hash.length > 1) {
     BlocklyStorage.retrieveXml(window.location.hash.substring(1));
 } else {
-    setTimeout(BlocklyStorage.restoreBlocks, 0);
+    BlocklyStorage.restoreBlocks();
 }
 BlocklyStorage.backupOnUnload();
 
@@ -279,20 +279,22 @@ function resetSystem() {
 
 function send() {
     if (hasQueue(currentSystem)) {
-        systemData[currentTimeslot][currentSystem] = true;
-        tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = 'green';
+        sendData(true);
     } else {
         // TODO: Warning: System tried to sent but there was no data
-        systemData[currentTimeslot][currentSystem] = false;
-        tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = 'red';
+        sendData(false);
     }
     nextSystem();
 }
 
 function noSend() {
-    systemData[currentTimeslot][currentSystem] = false;
-    tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = 'red';
+    sendData(false);
     nextSystem();
+}
+
+function sendData(value) {
+    systemData[currentTimeslot][currentSystem] = value;
+    tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = value ? 'green' : 'red';
 }
 
 function nextSystem() {
@@ -328,11 +330,7 @@ function addRow() {
 
 function highlightSystem(systemId) {
     for (var i = 0; i < SYSTEM_COUNT; i++) {
-        if (systemId === i) {
-            tableHead.cells[i + 1].className = 'blue';
-        } else {
-            tableHead.cells[i + 1].className = '';
-        }
+        tableHead.cells[i + 1].className = systemId === i ? 'blue' : '';
     }
 }
 
@@ -484,13 +482,9 @@ function runInterpreter() {
         myInterpreter = new Interpreter(code, initApi);
         runner = function () {
             if (myInterpreter) {
-                var timeout = speedRange.max - speedRange.value;
-                var hasMore;
-                if (speedCheck.checked) {
-                    hasMore = myInterpreter.step();
-                } else {
-                    hasMore = myInterpreter.run();
-                }
+                var step = speedCheck.checked;
+                var timeout = step ? speedRange.max - speedRange.value : 0;
+                var hasMore = step ? myInterpreter.step() : myInterpreter.run();
                 if (hasMore) {
                     setTimeout(runner, timeout);
                 } else {
@@ -498,7 +492,7 @@ function runInterpreter() {
                 }
             }
         };
-        setTimeout(runner, speedRange.max - speedRange.value);
+        runner();
     }
 }
 
