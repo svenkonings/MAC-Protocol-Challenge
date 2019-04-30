@@ -505,7 +505,7 @@ function runInterpreter() {
                 var timeout;
                 if (speedCheck.checked) {
                     hasMore = myInterpreter.step();
-                    timeout = speedRange.max - speedRange.value;
+                    timeout = speedRange.value;
                 } else {
                     hasMore = myInterpreter.run();
                     timeout = 0;

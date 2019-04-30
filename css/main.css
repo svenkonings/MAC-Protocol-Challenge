@@ -70,7 +70,11 @@ table {
 }
 
 tr {
-    height: 23px;
+    height: 24px;
+}
+
+tr:first-child {
+    border-top: hidden;
 }
 
 #tableBody > tr:last-child {
