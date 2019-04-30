@@ -100,11 +100,12 @@ td:last-child {
 
 button {
     color: #FFFFFF;
-    width: 47%;
+    width: 48%;
     outline: none;
     border: none;
     font-size: 16px;
     font-family: sans-serif;
+    white-space: nowrap;
     padding: 10px 24px;
     border-radius: 8px;
     cursor: pointer;
@@ -112,6 +113,7 @@ button {
 
 label {
     font-family: sans-serif;
+    white-space: nowrap;
 }
 
 input[type=checkbox] {
