@@ -132,7 +132,10 @@ Blockly.JavaScript['system_no_send'] = function () {
     return 'return false;\n';
 };
 
-Blockly.JavaScript.addReservedWords('highlightBlock,send,noSend,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,isCollision,getSender,currentSystem,currentTimeslot,systemCount,infiniteLoopCount');
+Blockly.JavaScript.addReservedWords(
+    'highlightBlock,send,noSend,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,' +
+    'isCollision,getSender,currentSystem,currentTimeslot,systemCount,alert,log,infiniteLoopCount'
+);
 Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 
 function initApi(interpreter, scope) {
@@ -191,6 +194,14 @@ function initApi(interpreter, scope) {
     interpreter.setProperty(scope, 'systemCount', interpreter.createNativeFunction(function () {
         return SYSTEM_COUNT;
     }));
+
+    interpreter.setProperty(scope, 'alert', interpreter.createNativeFunction(function (text) {
+        return alert(text);
+    }));
+
+    interpreter.setProperty(scope, 'log', interpreter.createNativeFunction(function (text) {
+        return console.log(text);
+    }));
 }
 
 var simulationVisualisation = document.getElementById('simulationVisualisation');
@@ -212,8 +223,8 @@ if (window.location.hash.length > 1) {
 BlocklyStorage.backupOnUnload();
 
 var onresize = function () {
-    simulationBody.style.height = simulationVisualisation.clientHeight - headerTable.clientHeight + 'px';
-    headerTable.style.width = bodyTable.clientWidth + 'px';
+    simulationBody.style.height = simulationVisualisation.clientHeight - headerTable.offsetHeight + 'px';
+    headerTable.style.width = bodyTable.offsetWidth + 'px';
 
     // Compute the absolute coordinates and dimensions of blocklyArea.
     var element = blocklyArea;
@@ -232,7 +243,6 @@ var onresize = function () {
     Blockly.svgResize(workspace);
 };
 addEventListener('resize', onresize, false);
-onresize();
 Blockly.svgResize(workspace);
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -261,6 +271,7 @@ var speedRange = document.getElementById('speedRange');
 for (var i = 0; i < SYSTEM_COUNT; i++) {
     tableHead.insertCell(i + 1).innerHTML = 'Systeem ' + i;
 }
+onresize();
 
 var systemQueue;
 var systemData;
@@ -281,7 +292,8 @@ function send() {
     if (hasQueue(currentSystem)) {
         sendData(true);
     } else {
-        // TODO: Warning: System tried to sent but there was no data
+        console.log('Systeem ' + currentSystem + ' in timeslot ' + currentTimeslot +
+            ' probeerde te versturen maar had geen data');
         sendData(false);
     }
     nextSystem();
@@ -340,12 +352,15 @@ function updateQueue() {
         var sendCell = tableBody.rows[previousTimeslot].cells[SYSTEM_COUNT + 1];
         if (isEmptySend(previousTimeslot)) {
             sendCell.innerHTML = '-';
+            sendCell.className = 'yellow';
         } else if (isSuccess(previousTimeslot)) {
             sendCell.innerHTML = '&check;';
+            sendCell.className = 'green';
             var sender = getSender(previousTimeslot);
             systemQueue[sender] -= 1;
         } else {
             sendCell.innerHTML = '&cross;';
+            sendCell.className ='red';
         }
     }
     addQueueData(currentTimeslot);
@@ -433,15 +448,18 @@ function codeChanged() {
             systemCode = systemCode.replace(new RegExp(variableName, 'g'), variableName + '[currentSystem()]');
         }
     } else {
-        // TODO: Log error
+        console.error("Couldn't parse Blockly code:\n" + blocklyCode);
         systemCode = blocklyCode;
     }
     code = variableCode +
         "var infiniteLoopCount = 0;\n" +
         "while (nextTimeslot()) {\n" +
         "    for (var i = 0; i < " + SYSTEM_COUNT + "; i++) {\n" +
-        // TODO: Warning if result is undefined
         "        var result = simulateSystem();\n" +
+        "        if (result === undefined) {\n" +
+        "            log('Geen versturen of niet versturen tegengekomen bij systeem ' +\n" +
+        "                currentSystem() + ' in timeslot ' + currentTimeslot());\n" +
+        "        }\n" +
         "        if (result) {\n" +
         "            send();\n" +
         "        } else {\n" +
@@ -450,8 +468,9 @@ function codeChanged() {
         "    }\n" +
         "   if (isSuccess(currentTimeslot())) {\n" +
         "      infiniteLoopCount = 0;\n" +
-        // TODO: Warning if max count hit
         "   } else if (++infiniteLoopCount > 100){\n" +
+        "      nextTimeslot();\n" +
+        "      alert('100 timeslots niet succesvol verstuurd, simulatie gestopt.');\n" +
         "      break;\n" +
         "   }\n" +
         "}\n" +
@@ -482,9 +501,15 @@ function runInterpreter() {
         myInterpreter = new Interpreter(code, initApi);
         runner = function () {
             if (myInterpreter) {
-                var step = speedCheck.checked;
-                var timeout = step ? speedRange.max - speedRange.value : 0;
-                var hasMore = step ? myInterpreter.step() : myInterpreter.run();
+                var hasMore;
+                var timeout;
+                if (speedCheck.checked) {
+                    hasMore = myInterpreter.step();
+                    timeout = speedRange.max - speedRange.value;
+                } else {
+                    hasMore = myInterpreter.run();
+                    timeout = 0;
+                }
                 if (hasMore) {
                     setTimeout(runner, timeout);
                 } else {
