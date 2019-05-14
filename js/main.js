@@ -90,8 +90,6 @@ Blockly.defineBlocksWithJsonArray([
     }
 ]);
 
-// TODO: Add print block
-
 Blockly.JavaScript['system_id'] = function () {
     return ['currentSystem()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
@@ -192,7 +190,7 @@ function initApi(interpreter, scope) {
     }));
 
     interpreter.setProperty(scope, 'systemCount', interpreter.createNativeFunction(function () {
-        return SYSTEM_COUNT;
+        return systemCount;
     }));
 
     interpreter.setProperty(scope, 'alert', interpreter.createNativeFunction(function (text) {
@@ -245,33 +243,92 @@ var onresize = function () {
 addEventListener('resize', onresize, false);
 Blockly.svgResize(workspace);
 
+function getParam(variable) {
+    var query = window.location.search.substring(1);
+    var vars = query.split("&");
+    for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] === variable) {
+            return pair[1];
+        }
+    }
+}
+
+function getJson(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function () {
+        callback(xhr.response);
+    };
+    xhr.send();
+}
+
 /*----------------------------------------------------------------------------------------------------------------------
                                                       Simulation
 ----------------------------------------------------------------------------------------------------------------------*/
 
-var SYSTEM_COUNT = 4;
-var QUEUE_DATA = {
-    0: [5, 0, 10, 0],
-    5: [5, 5, 0, 0],
-    10: [0, 0, 0, 5],
-    15: [0, 0, 0, 5],
-    20: [0, 10, 0, 0],
-    25: [0, 0, 5, 0]
-};
+var level;
+var systemCount = 0;
+var queueData = {};
 
 var code = null;
 var myInterpreter = null;
 var runner = null;
+var navLevels = document.getElementById('levels');
 var tableHead = document.getElementById('tableHead');
 var tableBody = document.getElementById('tableBody');
 var runButton = document.getElementById('runButton');
 var speedCheck = document.getElementById('speedCheck');
 var speedRange = document.getElementById('speedRange');
 
-for (var i = 0; i < SYSTEM_COUNT; i++) {
-    tableHead.insertCell(i + 1).innerHTML = 'Systeem ' + i;
+function setLevel(newLevel) {
+    if (level !== newLevel) {
+        history.pushState({level: newLevel}, 'MAC Protocollen', '?level=' + newLevel);
+        loadLevel();
+    }
 }
-onresize();
+
+function loadLevel() {
+    var levelParam = parseInt(getParam('level'));
+    level = levelParam ? levelParam : 1;
+
+    getJson('levels/' + level + '.json', function (result) {
+        systemCount = result["system_count"];
+        queueData = result["queue_data"];
+        workspace.updateToolbox(result["toolbox"]);
+        updateNavigation();
+        updateTableHead();
+        codeChanged();
+        resetSystem();
+    });
+}
+
+function updateNavigation() {
+    var children = navLevels.children;
+    navLevels.firstElementChild.disabled = level === 1;
+    navLevels.lastElementChild.disabled = level === children.length - 2;
+    for (var i = 1; i < children.length - 1; i++) {
+        children[i].className = i === level ? 'yellow' : '';
+    }
+}
+
+function updateTableHead() {
+    var currentSystems = tableHead.cells.length - 2;
+    if (currentSystems < systemCount) {
+        for (var i = currentSystems; i < systemCount; i++) {
+            tableHead.insertCell(i + 1).innerHTML = 'Systeem ' + i;
+        }
+    } else {
+        for (var j = currentSystems; j > systemCount; j--) {
+            tableHead.deleteCell(j);
+        }
+    }
+    onresize();
+}
+
+loadLevel();
+window.onpopstate = loadLevel;
 
 var systemQueue;
 var systemData;
@@ -280,7 +337,7 @@ var currentTimeslot;
 
 function resetSystem() {
     systemQueue = [];
-    for (var i = 0; i < SYSTEM_COUNT; i++) {
+    for (var i = 0; i < systemCount; i++) {
         systemQueue[i] = 0;
     }
     systemData = [];
@@ -332,7 +389,7 @@ function addRow() {
     var atBottom = simulationBody.scrollHeight - (simulationBody.clientHeight + simulationBody.scrollTop) <= 1;
     var row = tableBody.insertRow(currentTimeslot);
     row.insertCell(0).innerHTML = currentTimeslot;
-    for (var i = 1; i < SYSTEM_COUNT + 2; i++) {
+    for (var i = 1; i < systemCount + 2; i++) {
         row.insertCell(i);
     }
     if (atBottom) {
@@ -341,7 +398,7 @@ function addRow() {
 }
 
 function highlightSystem(systemId) {
-    for (var i = 0; i < SYSTEM_COUNT; i++) {
+    for (var i = 0; i < systemCount; i++) {
         tableHead.cells[i + 1].className = systemId === i ? 'blue' : '';
     }
 }
@@ -349,7 +406,7 @@ function highlightSystem(systemId) {
 function updateQueue() {
     var previousTimeslot = currentTimeslot - 1;
     if (previousTimeslot >= 0) {
-        var sendCell = tableBody.rows[previousTimeslot].cells[SYSTEM_COUNT + 1];
+        var sendCell = tableBody.rows[previousTimeslot].cells[systemCount + 1];
         if (isEmptySend(previousTimeslot)) {
             sendCell.innerHTML = '-';
             sendCell.className = 'yellow';
@@ -360,14 +417,14 @@ function updateQueue() {
             systemQueue[sender] -= 1;
         } else {
             sendCell.innerHTML = '&cross;';
-            sendCell.className ='red';
+            sendCell.className = 'red';
         }
     }
     addQueueData(currentTimeslot);
 }
 
 function addQueueData(timeslot) {
-    var newData = QUEUE_DATA[timeslot];
+    var newData = queueData[timeslot];
     if (newData) {
         for (var i = 0; i < systemQueue.length; i++) {
             systemQueue[i] += newData[i];
@@ -386,7 +443,7 @@ function totalQueue() {
 }
 
 function maxQueueTimeslot() {
-    return Math.max.apply(null, Object.keys(QUEUE_DATA));
+    return Math.max.apply(null, Object.keys(queueData));
 }
 
 function hasQueue(systemId) {
@@ -454,7 +511,7 @@ function codeChanged() {
     code = variableCode +
         "var infiniteLoopCount = 0;\n" +
         "while (nextTimeslot()) {\n" +
-        "    for (var i = 0; i < " + SYSTEM_COUNT + "; i++) {\n" +
+        "    for (var i = 0; i < " + systemCount + "; i++) {\n" +
         "        var result = simulateSystem();\n" +
         "        if (result === undefined) {\n" +
         "            log('Geen versturen of niet versturen tegengekomen bij systeem ' +\n" +

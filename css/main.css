@@ -3,12 +3,79 @@ html, body {
     margin: 0;
 }
 
+nav {
+    height: 38px;
+    padding: 4px 1em;
+    cursor: default;
+}
+
+nav a, nav button {
+    display: inline-block;
+    width: 38px;
+    height: 38px;
+    vertical-align: middle;
+    font-family: sans-serif;
+    cursor: pointer;
+}
+
+#levels {
+    display: inline-block;
+    width: calc(100% - 144px);
+    text-align: center;
+
+}
+
+#levels button {
+    color: initial;
+    outline: initial;
+    padding: initial;
+    cursor: pointer;
+    border: 2px solid #555;
+    border-radius: 100%;
+    line-height: 2.5;
+}
+
+#levels button:first-child {
+    border: none;
+    width: 0;
+    height: 0;
+    border-top: 15px solid transparent;
+    border-right: 30px solid #555;
+    border-bottom: 15px solid transparent;
+    background: none;
+}
+
+#levels button:first-child:disabled {
+    border-right-color: #C8C8C8;
+    cursor: not-allowed;
+}
+
+#levels button:last-child {
+    border: none;
+    width: 0;
+    height: 0;
+    border-top: 15px solid transparent;
+    border-left: 30px solid #555;
+    border-bottom: 15px solid transparent;
+    background: none;
+}
+
+#levels button:last-child:disabled {
+    border-left-color: #C8C8C8;
+    cursor: not-allowed;
+}
+
+#logo {
+    width: 38px;
+    height: 38px;
+}
+
 #simulation {
     position: relative;
     box-sizing: border-box;
     padding-bottom: 127px;
     width: 30%;
-    height: 100%;
+    height: calc(100% - 46px);
     float: left;
     text-align: center;
 }
@@ -33,9 +100,18 @@ html, body {
     bottom: 0;
 }
 
+#runButton {
+    width: 95%;
+}
+
+#shareButton {
+    height: 38px;
+    width: 98px;
+}
+
 #blocklyArea {
     width: 70%;
-    height: 100%;
+    height: calc(100% - 46px);
     float: left;
 }
 
@@ -77,7 +153,7 @@ tr:first-child {
     border-top: hidden;
 }
 
-#tableBody > tr:last-child {
+#tableBody tr:last-child {
     border-bottom: hidden;
 }
 
@@ -94,19 +170,18 @@ td:last-child {
     border-left: 2px double black;
 }
 
-#tableHead > td {
+#tableHead td {
     border-bottom: 2px double black;
 }
 
 button {
     color: #FFFFFF;
-    width: 48%;
     outline: none;
     border: none;
     font-size: 16px;
     font-family: sans-serif;
     white-space: nowrap;
-    padding: 10px 24px;
+    padding: 10px;
     border-radius: 8px;
     cursor: pointer;
 }

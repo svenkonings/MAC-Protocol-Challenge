@@ -13,6 +13,16 @@
     <link rel="stylesheet" type="text/css" href="css/main.css" media="all"/>
 </head>
 <body>
+<nav>
+    <a href=""><img id="logo" src="logo.png" alt="MAC Protocollen"></a>
+    <div id="levels">
+        <button onclick="setLevel(level - 1);"></button>
+        <button onclick="setLevel(1);">1</button>
+        <button onclick="setLevel(2);">2</button>
+        <button onclick="setLevel(level + 1);"></button>
+    </div>
+    <button id="shareButton" class="blue" onclick="BlocklyStorage.link()">Link delen!</button>
+</nav>
 <div id="simulation">
     <div id="simulationVisualisation">
         <table id="headerTable">
@@ -31,8 +41,7 @@
     </div>
     <div id="simulationControls">
         <br>
-        <button id="runButton" class="green" onclick="runInterpreter()">Simuleer!</button>
-        <button id="shareButton" class="blue" onclick="BlocklyStorage.link()">Link delen!</button><!--
+        <button id="runButton" class="green" onclick="runInterpreter()">Simuleer!</button><!--
      --><br><br>
         <input aria-label="Simulatie sneldheid" type="checkbox" id="speedCheck" onclick="checkChanged();" checked><!--
      --><label for="speedRange">Simulatie vertragen:</label>
