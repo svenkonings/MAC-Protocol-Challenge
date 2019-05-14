@@ -14,24 +14,18 @@ nav a, nav button {
     width: 38px;
     height: 38px;
     vertical-align: middle;
-    font-family: sans-serif;
-    cursor: pointer;
 }
 
 #levels {
     display: inline-block;
-    width: calc(100% - 144px);
+    width: calc(100% - 145px);
     text-align: center;
 
 }
 
 #levels button {
-    color: initial;
-    outline: initial;
-    padding: initial;
-    cursor: pointer;
+    color: black;
     border: 2px solid #555;
-    border-radius: 100%;
     line-height: 2.5;
 }
 
@@ -102,11 +96,12 @@ nav a, nav button {
 
 #runButton {
     width: 95%;
+    height: 38px;
 }
 
 #shareButton {
-    height: 38px;
     width: 98px;
+    height: 38px;
 }
 
 #blocklyArea {
@@ -181,7 +176,6 @@ button {
     font-size: 16px;
     font-family: sans-serif;
     white-space: nowrap;
-    padding: 10px;
     border-radius: 8px;
     cursor: pointer;
 }
@@ -198,6 +192,7 @@ input[type=checkbox] {
 input[type=range] {
     -webkit-appearance: none;
     width: 95%;
+    padding: 0;
     outline: none;
     vertical-align: bottom;
 }

@@ -257,9 +257,8 @@ function getParam(variable) {
 function getJson(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url, true);
-    xhr.responseType = 'json';
     xhr.onload = function () {
-        callback(xhr.response);
+        callback(JSON.parse(xhr.responseText));
     };
     xhr.send();
 }
