@@ -9,27 +9,19 @@ BlocklyStorage.XML_ERROR = 'Je opgeslagen bestand kan niet geladen worden. Is he
 
 Blockly.defineBlocksWithJsonArray([
     {
-        "type": "system_id",
-        "message0": "Systeemnummer",
-        "output": "Number",
-        "colour": 160,
-        "tooltip": "Geeft het nummer van het systeem terug.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_sender",
-        "message0": "Systeemnummer verstuurder vorig tijdslot",
-        "output": "Number",
-        "colour": 160,
-        "tooltip": "Geeft het systeemnummer terug van het systeem dat succesvol verstuurd heeft in het vorige tijdslot.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_has_data",
-        "message0": "Heeft data",
+        "type": "system_has_queue",
+        "message0": "Heeft berichten",
         "output": "Boolean",
         "colour": 160,
-        "tooltip": "Geeft terug of het systeem data heeft of niet.",
+        "tooltip": "Geeft terug of het systeem berichten heeft of niet.",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_queue_length",
+        "message0": "Aantal berichten",
+        "output": "Number",
+        "colour": 160,
+        "tooltip": "Geeft terug hoeveel berichten het systeem heeft.",
         "helpUrl": ""
     },
     {
@@ -37,7 +29,7 @@ Blockly.defineBlocksWithJsonArray([
         "message0": "Tijdslot",
         "output": "Number",
         "colour": 160,
-        "tooltip": "Geeft het huidige tijdslot terug",
+        "tooltip": "Geeft het huidige tijdslot terug.",
         "helpUrl": ""
     },
     {
@@ -45,39 +37,7 @@ Blockly.defineBlocksWithJsonArray([
         "message0": "Aantal systemen",
         "output": "Number",
         "colour": 160,
-        "tooltip": "Geeft het aantal systemen terug",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_empty_send",
-        "message0": "Niks verstuurd vorig tijdslot",
-        "output": "Boolean",
-        "colour": 160,
-        "tooltip": "Geeft terug of er een niks verstuurd was in het vorige tijdslot.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_success",
-        "message0": "Succesvol verstuurd vorig tijdslot",
-        "output": "Boolean",
-        "colour": 160,
-        "tooltip": "Geeft terug of er succesvol verstuurd was in het vorige tijdslot.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_collision",
-        "message0": "Collisie vorig tijdslot",
-        "output": "Boolean",
-        "colour": 160,
-        "tooltip": "Geeft terug of er een collisie was in het vorige tijdslot.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_send",
-        "message0": "Versturen",
-        "previousStatement": null,
-        "colour": 160,
-        "tooltip": "Laat het systeem data versturen.",
+        "tooltip": "Geeft het aantal systemen terug.",
         "helpUrl": ""
     },
     {
@@ -87,19 +47,79 @@ Blockly.defineBlocksWithJsonArray([
         "colour": 160,
         "tooltip": "Laat het systeem niet versturen.",
         "helpUrl": ""
+    },
+    {
+        "type": "system_send",
+        "message0": "Versturen",
+        "previousStatement": null,
+        "colour": 160,
+        "tooltip": "Laat het systeem een bericht versturen.",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_send_control",
+        "message0": "Versturen met controle informatie %1",
+        "args0": [
+            {
+                "type": "input_value",
+                "name": "CONTROL",
+                "check": "Number"
+            }
+        ],
+        "inputsInline": true,
+        "previousStatement": null,
+        "colour": 160,
+        "tooltip": "Laat het systeem een bericht versturen met controle informatie.",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_sender",
+        "message0": "Heeft verstuurd vorig tijdslot",
+        "output": "Boolean",
+        "colour": 160,
+        "tooltip": "Geeft terug of dit systeem heeft verstuurd in het vorige tijdslot.",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_empty_send",
+        "message0": "Niks verstuurd vorig tijdslot",
+        "output": "Boolean",
+        "colour": 160,
+        "tooltip": "Geeft terug of er een niks verstuurd is in het vorige tijdslot.",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_collision",
+        "message0": "Collisie vorig tijdslot",
+        "output": "Boolean",
+        "colour": 160,
+        "tooltip": "Geeft  terug of er een collisie is in het vorige tijdslot.",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_success",
+        "message0": "Succesvol verstuurd vorig tijdslot",
+        "output": "Boolean",
+        "colour": 160,
+        "tooltip": "Geeft terug of er succesvol verstuurd is in het vorige tijdslot.",
+        "helpUrl": ""
+    },
+    {
+        "type": "system_control",
+        "message0": "Controle informatie verstuurder vorig tijdslot",
+        "output": "Number",
+        "colour": 160,
+        "tooltip": "Geeft de controle informatie terug van het systeem dat succesvol gestuurd heeft in het vorige tijdslot.",
+        "helpUrl": ""
     }
 ]);
 
-Blockly.JavaScript['system_id'] = function () {
-    return ['currentSystem()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript['system_sender'] = function () {
-    return ['getSender(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript['system_has_data'] = function () {
+Blockly.JavaScript['system_has_queue'] = function () {
     return ['hasQueue(currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript['system_queue_length'] = function () {
+    return ['queueLength(currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_timeslot'] = function () {
@@ -110,24 +130,37 @@ Blockly.JavaScript['system_count'] = function () {
     return ['systemCount()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
-Blockly.JavaScript['system_empty_send'] = function () {
-    return ['isEmptySend(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+Blockly.JavaScript['system_no_send'] = function () {
+    return 'return null;\n';
 };
 
-Blockly.JavaScript['system_success'] = function () {
-    return ['isSuccess(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+Blockly.JavaScript['system_send'] = function () {
+    return 'return 0;\n';
+};
+
+Blockly.JavaScript['system_send_control'] = function(block) {
+    var control = Blockly.JavaScript.valueToCode(block, 'CONTROL', Blockly.JavaScript.ORDER_ATOMIC);
+    return 'return ' + control + ';\n'
+};
+
+Blockly.JavaScript['system_sender'] = function () {
+    return ['isSender(currentSystem(), currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+};
+
+Blockly.JavaScript['system_empty_send'] = function () {
+    return ['isEmptySend(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_collision'] = function () {
     return ['isCollision(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
-Blockly.JavaScript['system_send'] = function () {
-    return 'return true;\n';
+Blockly.JavaScript['system_success'] = function () {
+    return ['isSuccess(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
-Blockly.JavaScript['system_no_send'] = function () {
-    return 'return false;\n';
+Blockly.JavaScript['system_control'] = function () {
+    return ['getControl(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript.addReservedWords(
@@ -141,8 +174,8 @@ function initApi(interpreter, scope) {
         return workspace.highlightBlock(blockId);
     }));
 
-    interpreter.setProperty(scope, 'send', interpreter.createNativeFunction(function () {
-        return send();
+    interpreter.setProperty(scope, 'send', interpreter.createNativeFunction(function (result) {
+        return send(result);
     }));
 
     interpreter.setProperty(scope, 'noSend', interpreter.createNativeFunction(function () {
@@ -165,20 +198,32 @@ function initApi(interpreter, scope) {
         return hasQueue(systemId);
     }));
 
-    interpreter.setProperty(scope, 'isEmptySend', interpreter.createNativeFunction(function (timeslot) {
-        return isEmptySend(timeslot);
+    interpreter.setProperty(scope, 'queueLength', interpreter.createNativeFunction(function (systemId) {
+        return queueLength(systemId);
     }));
 
-    interpreter.setProperty(scope, 'isSuccess', interpreter.createNativeFunction(function (timeslot) {
-        return isSuccess(timeslot);
+    interpreter.setProperty(scope, 'getSender', interpreter.createNativeFunction(function (timeslot) {
+        return getSender(timeslot);
+    }));
+
+    interpreter.setProperty(scope, 'isSender', interpreter.createNativeFunction(function (systemId, timeslot) {
+        return isSender(systemId, timeslot);
+    }));
+
+    interpreter.setProperty(scope, 'isEmptySend', interpreter.createNativeFunction(function (timeslot) {
+        return isEmptySend(timeslot);
     }));
 
     interpreter.setProperty(scope, 'isCollision', interpreter.createNativeFunction(function (timeslot) {
         return isCollision(timeslot);
     }));
 
-    interpreter.setProperty(scope, 'getSender', interpreter.createNativeFunction(function (timeslot) {
-        return getSender(timeslot);
+    interpreter.setProperty(scope, 'isSuccess', interpreter.createNativeFunction(function (timeslot) {
+        return isSuccess(timeslot);
+    }));
+
+    interpreter.setProperty(scope, 'getControl', interpreter.createNativeFunction(function (timeslot) {
+        return getControl(timeslot);
     }));
 
     interpreter.setProperty(scope, 'currentSystem', interpreter.createNativeFunction(function () {
@@ -216,7 +261,12 @@ var workspace = Blockly.inject(blocklyDiv, {
 if (window.location.hash.length > 1) {
     BlocklyStorage.retrieveXml(window.location.hash.substring(1));
 } else {
-    BlocklyStorage.restoreBlocks();
+    try {
+        BlocklyStorage.restoreBlocks();
+    } catch (e) {
+        console.error("Couldn't restore blocks:", e);
+        workspace.clear();
+    }
 }
 BlocklyStorage.backupOnUnload();
 
@@ -344,25 +394,25 @@ function resetSystem() {
     tableBody.innerHTML = '';
 }
 
-function send() {
+function send(value) {
     if (hasQueue(currentSystem)) {
-        sendData(true);
+        sendData(value);
     } else {
         console.log('Systeem ' + currentSystem + ' in timeslot ' + currentTimeslot +
             ' probeerde te versturen maar had geen data');
-        sendData(false);
+        sendData(null);
     }
     nextSystem();
 }
 
 function noSend() {
-    sendData(false);
+    sendData(null);
     nextSystem();
 }
 
 function sendData(value) {
     systemData[currentTimeslot][currentSystem] = value;
-    tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = value ? 'green' : 'red';
+    tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = value !== null ? 'green' : 'red';
 }
 
 function nextSystem() {
@@ -445,6 +495,10 @@ function maxQueueTimeslot() {
     return Math.max.apply(null, Object.keys(queueData));
 }
 
+function queueLength(systemId) {
+    return systemQueue[systemId];
+}
+
 function hasQueue(systemId) {
     return systemQueue[systemId] > 0;
 }
@@ -456,7 +510,7 @@ function sendCount(timeslot) {
     var sendCount = 0;
     var timeslotData = systemData[timeslot];
     for (var i = 0; i < timeslotData.length; i++) {
-        if (timeslotData[i]) {
+        if (timeslotData[i] !== null) {
             sendCount++
         }
     }
@@ -479,11 +533,26 @@ function getSender(timeslot) {
     if (isSuccess(timeslot)) {
         var timeslotData = systemData[timeslot];
         for (var i = 0; i < timeslotData.length; i++) {
-            if (timeslotData[i]) {
+            if (timeslotData[i] !== null) {
                 return i;
             }
         }
     }
+}
+
+function getControl(timeslot) {
+    if (isSuccess(timeslot)) {
+        var timeslotData = systemData[timeslot];
+        for (var i = 0; i < timeslotData.length; i++) {
+            if (timeslotData[i] !== null) {
+                return timeslotData[i];
+            }
+        }
+    }
+}
+
+function isSender(systemId, timeslot) {
+    return systemId === getSender(timeslot);
 }
 
 function codeChanged() {
@@ -515,9 +584,9 @@ function codeChanged() {
         "        if (result === undefined) {\n" +
         "            log('Geen versturen of niet versturen tegengekomen bij systeem ' +\n" +
         "                currentSystem() + ' in timeslot ' + currentTimeslot());\n" +
-        "        }\n" +
-        "        if (result) {\n" +
-        "            send();\n" +
+        "            noSend();\n" +
+        "        } else if (result !== null) {\n" +
+        "            send(result);\n" +
         "        } else {\n" +
         "            noSend();\n" +
         "        }\n" +

@@ -28,7 +28,7 @@
         <table id="headerTable">
             <thead>
             <tr id="tableHead">
-                <td>Timeslot</td>
+                <td>Tijdslot</td>
                 <td>Succes</td>
             </tr>
             </thead>
@@ -53,16 +53,24 @@
 <div id="blocklyDiv"></div>
 <xml id="toolbox">
     <category name="Systeem" colour="#5ba5a5">
-        <block type="system_id"></block>
-        <block type="system_sender"></block>
-        <block type="system_has_data"></block>
+        <block type="system_has_queue"></block>
+        <block type="system_queue_length"></block>
         <block type="system_timeslot"></block>
         <block type="system_count"></block>
-        <block type="system_empty_send"></block>
-        <block type="system_success"></block>
-        <block type="system_collision"></block>
-        <block type="system_send"></block>
         <block type="system_no_send"></block>
+        <block type="system_send"></block>
+        <block type="system_send_control">
+            <value name="CONTROL">
+                <block type="math_number">
+                    <field name="NUM">0</field>
+                </block>
+            </value>
+        </block>
+        <block type="system_sender"></block>
+        <block type="system_empty_send"></block>
+        <block type="system_collision"></block>
+        <block type="system_success"></block>
+        <block type="system_control"></block>
     </category>
     <category name="Logica" colour="#5C81A6">
         <block type="controls_if"></block>
