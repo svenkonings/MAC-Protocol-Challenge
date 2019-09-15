@@ -138,7 +138,7 @@ Blockly.JavaScript['system_send'] = function () {
     return 'return 0;\n';
 };
 
-Blockly.JavaScript['system_send_control'] = function(block) {
+Blockly.JavaScript['system_send_control'] = function (block) {
     var control = Blockly.JavaScript.valueToCode(block, 'CONTROL', Blockly.JavaScript.ORDER_ATOMIC);
     return 'return ' + control + ';\n'
 };
@@ -247,10 +247,23 @@ function initApi(interpreter, scope) {
     }));
 }
 
+var navLevels = document.getElementById('levels');
+
 var simulationVisualisation = document.getElementById('simulationVisualisation');
 var simulationBody = document.getElementById('simulationBody');
+var runButton = document.getElementById('runButton');
+var speedCheck = document.getElementById('speedCheck');
+var speedRange = document.getElementById('speedRange');
+
 var headerTable = document.getElementById('headerTable');
+var tableHead = document.getElementById('tableHead');
 var bodyTable = document.getElementById('bodyTable');
+var tableBody = document.getElementById('tableBody');
+
+var simulationText = document.getElementById('simulationText');
+var previousButton = document.getElementById('previousButton');
+var nextButton = document.getElementById('nextButton');
+
 var blocklyArea = document.getElementById('blocklyArea');
 var blocklyDiv = document.getElementById('blocklyDiv');
 var workspace = Blockly.inject(blocklyDiv, {
@@ -258,6 +271,7 @@ var workspace = Blockly.inject(blocklyDiv, {
     grid: {spacing: 25, length: 3, colour: '#ccc', snap: true},
     zoom: {controls: true, wheel: true, scaleSpeed: 1.05}
 });
+
 if (window.location.hash.length > 1) {
     BlocklyStorage.retrieveXml(window.location.hash.substring(1));
 } else {
@@ -321,15 +335,12 @@ var level;
 var systemCount = 0;
 var queueData = {};
 
+var text = [""];
+var currentText = 0;
+
 var code = null;
 var myInterpreter = null;
 var runner = null;
-var navLevels = document.getElementById('levels');
-var tableHead = document.getElementById('tableHead');
-var tableBody = document.getElementById('tableBody');
-var runButton = document.getElementById('runButton');
-var speedCheck = document.getElementById('speedCheck');
-var speedRange = document.getElementById('speedRange');
 
 function setLevel(newLevel) {
     if (level !== newLevel) {
@@ -346,8 +357,11 @@ function loadLevel() {
         systemCount = result["system_count"];
         queueData = result["queue_data"];
         workspace.updateToolbox(result["toolbox"]);
+        text = result["text"];
+        currentText = 0;
         updateNavigation();
         updateTableHead();
+        updateText();
         codeChanged();
         resetSystem();
     });
@@ -374,6 +388,26 @@ function updateTableHead() {
         }
     }
     onresize();
+}
+
+function updateText() {
+    simulationText.innerHTML = text[currentText];
+    previousButton.disabled = currentText <= 0;
+    nextButton.disabled = currentText >= text.length - 1;
+}
+
+function previousText() {
+    if (currentText > 0) {
+        currentText -= 1;
+    }
+    updateText();
+}
+
+function nextText() {
+    if (currentText < text.length - 1) {
+        currentText += 1;
+    }
+    updateText();
 }
 
 loadLevel();

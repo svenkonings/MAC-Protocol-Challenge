@@ -94,6 +94,39 @@ nav a, nav button {
     bottom: 0;
 }
 
+#simulationHelp {
+    position: relative;
+    box-sizing: border-box;
+    padding-bottom: 127px;
+    width: 20%;
+    height: calc(100% - 46px);
+    float: left;
+    background-color: #ddd;
+}
+
+#simulationText {
+    padding: 24px;
+}
+
+#simulationHelpButtons {
+    position: absolute;
+    height: 55px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    text-align: center;
+}
+
+#simulationHelpButtons > button {
+    width: 45%;
+    height: 38px;
+}
+
+#simulationHelpButtons > button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 #runButton {
     width: 95%;
     height: 38px;
@@ -105,7 +138,7 @@ nav a, nav button {
 }
 
 #blocklyArea {
-    width: 70%;
+    width: 50%;
     height: calc(100% - 46px);
     float: left;
 }
@@ -167,6 +200,10 @@ td:last-child {
 
 #tableHead td {
     border-bottom: 2px double black;
+}
+
+div {
+    font-family: sans-serif;
 }
 
 button {
