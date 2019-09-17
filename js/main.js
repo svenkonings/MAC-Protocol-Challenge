@@ -1,3 +1,5 @@
+var LEVELS = 2;
+
 /*----------------------------------------------------------------------------------------------------------------------
                                                     Initialisation
 ----------------------------------------------------------------------------------------------------------------------*/
@@ -326,6 +328,17 @@ function getJson(url, callback) {
     };
     xhr.send();
 }
+
+function initNavigation() {
+    var html = navLevels.innerHTML;
+    var lines = html.split('\n');
+    for (var i = 1; i <= LEVELS; i++) {
+        lines.splice(i + 1, 0, '<button onclick="setLevel(' + i + ');">' + i + '</button>');
+    }
+    navLevels.innerHTML = lines.join('\n');
+}
+
+initNavigation();
 
 /*----------------------------------------------------------------------------------------------------------------------
                                                       Simulation
