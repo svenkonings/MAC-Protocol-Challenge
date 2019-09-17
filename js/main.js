@@ -247,6 +247,10 @@ function initApi(interpreter, scope) {
     interpreter.setProperty(scope, 'log', interpreter.createNativeFunction(function (text) {
         return console.log(text);
     }));
+
+    interpreter.setProperty(scope, 'levelCompleted', interpreter.createNativeFunction(function () {
+        return levelCompleted();
+    }));
 }
 
 var navLevels = document.getElementById('levels');
@@ -379,6 +383,16 @@ function loadLevel() {
         codeChanged();
         resetSystem();
     });
+}
+
+function levelCompleted() {
+    if (level < LEVELS) {
+        if (confirm('Level gehaald! Wil je naar het volgende level gaan?')) {
+            setLevel(level + 1);
+        }
+    } else {
+        alert('Level gehaald!');
+    }
 }
 
 function updateNavigation() {
@@ -659,6 +673,9 @@ function codeChanged() {
         "      alert('100 timeslots niet succesvol verstuurd, simulatie gestopt.');\n" +
         "      break;\n" +
         "   }\n" +
+        "}\n" +
+        "if (infiniteLoopCount <= 100) {\n" +
+        "    levelCompleted();\n" +
         "}\n" +
         "function simulateSystem() {\n" +
         systemCode +
