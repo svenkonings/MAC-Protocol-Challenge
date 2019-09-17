@@ -1,4 +1,4 @@
-var LEVELS = 2;
+var LEVELS = 3;
 
 /*----------------------------------------------------------------------------------------------------------------------
                                                     Initialisation
@@ -262,6 +262,7 @@ var tableHead = document.getElementById('tableHead');
 var bodyTable = document.getElementById('bodyTable');
 var tableBody = document.getElementById('tableBody');
 
+var simulationHelp = document.getElementById('simulationHelp');
 var simulationText = document.getElementById('simulationText');
 var previousButton = document.getElementById('previousButton');
 var nextButton = document.getElementById('nextButton');
@@ -404,9 +405,22 @@ function updateTableHead() {
 }
 
 function updateText() {
-    simulationText.innerHTML = text[currentText];
-    previousButton.disabled = currentText <= 0;
-    nextButton.disabled = currentText >= text.length - 1;
+    if (text === undefined) {
+        if (!simulationHelp.hidden) {
+            simulationHelp.hidden = true;
+            blocklyArea.style.width = "70%";
+            onresize();
+        }
+    } else {
+        if (simulationHelp.hidden) {
+            simulationHelp.hidden = false;
+            blocklyArea.style.width = "50%";
+            onresize();
+        }
+        simulationText.innerHTML = text[currentText];
+        previousButton.disabled = currentText <= 0;
+        nextButton.disabled = currentText >= text.length - 1;
+    }
 }
 
 function previousText() {
