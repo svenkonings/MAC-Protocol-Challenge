@@ -731,6 +731,9 @@ function resetInterpreter() {
         runner = null;
     }
     workspace.highlightBlock(null);
+    for (var i = 0; i < systemCount; i++) {
+        tableHead.cells[i + 1].className = '';
+    }
     runButton.innerText = "Simuleer!";
     runButton.className = "green";
     runButton.onclick = runInterpreter;
