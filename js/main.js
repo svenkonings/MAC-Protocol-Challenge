@@ -181,6 +181,11 @@ Blockly.JavaScript['system_control'] = function () {
     return ['getControl(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
+Blockly.JavaScript['math_random_chance'] = function(block) {
+    var chance = Blockly.JavaScript.valueToCode(block, 'CHANCE', Blockly.JavaScript.ORDER_ATOMIC);
+    return ['Math.random() * 100 < ' + chance, Blockly.JavaScript.ORDER_RELATIONAL];
+};
+
 Blockly.JavaScript.addReservedWords(
     'highlightBlock,send,noSend,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,' +
     'isCollision,getSender,currentSystem,currentTimeslot,systemCount,alert,log,infiniteLoopCount'
