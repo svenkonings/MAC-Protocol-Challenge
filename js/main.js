@@ -1,4 +1,4 @@
-var LEVELS = 3;
+var LEVELS = 4;
 
 /*----------------------------------------------------------------------------------------------------------------------
                                                     Initialisation
@@ -60,7 +60,7 @@ Blockly.defineBlocksWithJsonArray([
     },
     {
         "type": "system_send_control",
-        "message0": "Versturen met controle informatie %1",
+        "message0": "Versturen met getal %1",
         "args0": [
             {
                 "type": "input_value",
@@ -76,7 +76,7 @@ Blockly.defineBlocksWithJsonArray([
     },
     {
         "type": "system_sender",
-        "message0": "Heeft verstuurd vorig tijdslot",
+        "message0": "Heeft zelf verstuurd vorig tijdslot",
         "output": "Boolean",
         "colour": 160,
         "tooltip": "Geeft terug of dit systeem heeft verstuurd in het vorige tijdslot.",
@@ -108,10 +108,26 @@ Blockly.defineBlocksWithJsonArray([
     },
     {
         "type": "system_control",
-        "message0": "Controle informatie verstuurder vorig tijdslot",
+        "message0": "Getal verstuurd vorig tijdslot",
         "output": "Number",
         "colour": 160,
         "tooltip": "Geeft de controle informatie terug van het systeem dat succesvol gestuurd heeft in het vorige tijdslot.",
+        "helpUrl": ""
+    },
+    {
+        "type": "math_random_chance",
+        "message0": "Kans van %1 %%",
+        "args0": [
+            {
+                "type": "input_value",
+                "name": "CHANCE",
+                "check": "Number"
+            }
+        ],
+        "inputsInline": true,
+        "output": "Boolean",
+        "colour": 230,
+        "tooltip": "Geeft waar of niet waar terug met de opgegeven willekeurige kans",
         "helpUrl": ""
     }
 ]);
@@ -379,7 +395,7 @@ function loadLevel() {
         currentText = 0;
         updateNavigation();
         updateTableHead();
-        updateText();
+        updateHelp();
         codeChanged();
         resetSystem();
     });
@@ -418,37 +434,43 @@ function updateTableHead() {
     onresize();
 }
 
-function updateText() {
+function updateHelp() {
     if (text === undefined) {
-        if (!simulationHelp.hidden) {
-            simulationHelp.hidden = true;
-            blocklyArea.style.width = "70%";
-            onresize();
-        }
+        simulationHelp.hidden = true;
+        blocklyArea.style.width = "70%";
     } else {
-        if (simulationHelp.hidden) {
-            simulationHelp.hidden = false;
-            blocklyArea.style.width = "50%";
-            onresize();
+        simulationHelp.hidden = false;
+        blocklyArea.style.width = "50%";
+        if (text.length <= 1) {
+            previousButton.hidden = true;
+            nextButton.hidden = true;
+        } else {
+            previousButton.hidden = false;
+            nextButton.hidden = false;
         }
-        simulationText.innerHTML = text[currentText];
-        previousButton.disabled = currentText <= 0;
-        nextButton.disabled = currentText >= text.length - 1;
+        changeText()
     }
+    onresize();
+}
+
+function changeText() {
+    simulationText.innerHTML = text[currentText];
+    previousButton.disabled = currentText <= 0;
+    nextButton.disabled = currentText >= text.length - 1;
 }
 
 function previousText() {
     if (currentText > 0) {
         currentText -= 1;
     }
-    updateText();
+    changeText();
 }
 
 function nextText() {
     if (currentText < text.length - 1) {
         currentText += 1;
     }
-    updateText();
+    changeText();
 }
 
 loadLevel();
