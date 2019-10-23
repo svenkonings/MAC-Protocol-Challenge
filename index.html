@@ -19,7 +19,10 @@
         <button onclick="setLevel(level - 1);"></button>
         <button onclick="setLevel(level + 1);"></button>
     </div>
-    <button id="shareButton" class="blue" onclick="BlocklyStorage.link()">Link delen!</button>
+    <button id="exportButton" class="green" onclick="saveWorkspace();">Exporteer!</button>
+    <button id="importButton" class="red" onclick="document.getElementById('importInput').click();">Importeer!</button>
+    <input id="importInput" type="file" accept="application/xml" onchange="loadWorkspace(this.files[0]);">
+    <button id="shareButton" class="blue" onclick="BlocklyStorage.link();">Link delen!</button>
 </nav>
 <div id="simulation">
     <div id="simulationVisualisation">
@@ -173,6 +176,7 @@
     <category name="Variabelen" colour="#A65C81" custom="VARIABLE"></category>
 </xml>
 <script src="js/acorn_interpreter.js"></script>
+<script src="js/filesaver.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

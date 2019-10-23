@@ -18,7 +18,7 @@ nav a, nav button {
 
 #levels {
     display: inline-block;
-    width: calc(100% - 145px);
+    width: calc(100% - 348px);
     text-align: center;
 
 }
@@ -132,9 +132,13 @@ nav a, nav button {
     height: 38px;
 }
 
-#shareButton {
+#exportButton, #importButton, #shareButton {
     width: 98px;
     height: 38px;
+}
+
+#importInput {
+    display: none;
 }
 
 #blocklyArea {

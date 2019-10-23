@@ -181,7 +181,7 @@ Blockly.JavaScript['system_control'] = function () {
     return ['getControl(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
-Blockly.JavaScript['math_random_chance'] = function(block) {
+Blockly.JavaScript['math_random_chance'] = function (block) {
     var chance = Blockly.JavaScript.valueToCode(block, 'CHANCE', Blockly.JavaScript.ORDER_ATOMIC);
     return ['Math.random() * 100 < ' + chance, Blockly.JavaScript.ORDER_RELATIONAL];
 };
@@ -764,4 +764,20 @@ function resetInterpreter() {
     runButton.innerText = "Simuleer!";
     runButton.className = "green";
     runButton.onclick = runInterpreter;
+}
+
+function saveWorkspace() {
+    saveAs(
+        new Blob([Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace))], {type: 'application/xml'}),
+        "workspace.xml"
+    )
+}
+
+function loadWorkspace(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+        var dom = Blockly.Xml.textToDom(reader.result);
+        Blockly.Xml.domToWorkspace(dom, workspace);
+    };
+    reader.readAsText(file);
 }
