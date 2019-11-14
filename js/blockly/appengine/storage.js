@@ -71,6 +71,12 @@ BlocklyStorage.restoreBlocks = function(opt_workspace) {
 BlocklyStorage.link = function(opt_workspace) {
   var workspace = opt_workspace || Blockly.getMainWorkspace();
   var xml = Blockly.Xml.workspaceToDom(workspace, true);
+  BlocklyStorage.removeCoordinates(workspace, xml);
+  var data = Blockly.Xml.domToText(xml);
+  BlocklyStorage.makeRequest_('https://mac-protocol-challenge.appspot.com/storage', 'xml', data, workspace);
+};
+
+BlocklyStorage.removeCoordinates = function(workspace, xml) {
   // Remove x/y coordinates from XML if there's only one block stack.
   // There's no reason to store this, removing it helps with anonymity.
   if (workspace.getTopBlocks(false).length == 1 && xml.querySelector) {
@@ -80,8 +86,6 @@ BlocklyStorage.link = function(opt_workspace) {
       block.removeAttribute('y');
     }
   }
-  var data = Blockly.Xml.domToText(xml);
-  BlocklyStorage.makeRequest_('https://mac-protocol-challenge.appspot.com/storage', 'xml', data, workspace);
 };
 
 /**

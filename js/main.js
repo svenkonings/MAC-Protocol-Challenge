@@ -1,8 +1,8 @@
-var LEVELS = 6;
-
 /*----------------------------------------------------------------------------------------------------------------------
-                                                    Initialisation
+                                                   Initialisation
 ----------------------------------------------------------------------------------------------------------------------*/
+
+var LEVELS = 6;
 
 BlocklyStorage.HTTPREQUEST_ERROR = 'Er is een probleem opgetreden tijdens het verwerken van het verzoek.\n';
 BlocklyStorage.LINK_ALERT = 'Deel je blokken via deze koppeling:\n\n%1';
@@ -300,17 +300,32 @@ var workspace = Blockly.inject(blocklyDiv, {
     zoom: {controls: true, wheel: true, scaleSpeed: 1.05}
 });
 
-if (window.location.hash.length > 1) {
-    BlocklyStorage.retrieveXml(window.location.hash.substring(1));
-} else {
-    try {
-        BlocklyStorage.restoreBlocks();
-    } catch (e) {
-        console.error("Couldn't restore blocks:", e);
-        workspace.clear();
+function restoreWorkspace() {
+    if (window.location.hash.length > 1) {
+        BlocklyStorage.retrieveXml(window.location.hash.substring(1));
+    } else {
+        try {
+            BlocklyStorage.restoreBlocks();
+        } catch (e) {
+            console.error("Couldn't restore blocks:", e);
+            workspace.clear();
+        }
     }
+    BlocklyStorage.backupOnUnload();
 }
-BlocklyStorage.backupOnUnload();
+
+restoreWorkspace();
+
+function initNavigation() {
+    var html = navLevels.innerHTML;
+    var lines = html.split('\n');
+    for (var i = 1; i <= LEVELS; i++) {
+        lines.splice(i + 1, 0, '<button onclick="setLevel(' + i + ');">' + i + '</button>');
+    }
+    navLevels.innerHTML = lines.join('\n');
+}
+
+initNavigation();
 
 var onresize = function () {
     simulationBody.style.height = simulationVisualisation.clientHeight - headerTable.offsetHeight + 'px';
@@ -335,6 +350,10 @@ var onresize = function () {
 addEventListener('resize', onresize, false);
 Blockly.svgResize(workspace);
 
+/*----------------------------------------------------------------------------------------------------------------------
+                                                       Utilities
+----------------------------------------------------------------------------------------------------------------------*/
+
 function getParam(variable) {
     var query = window.location.search.substring(1);
     var vars = query.split("&");
@@ -355,19 +374,30 @@ function getJson(url, callback) {
     xhr.send();
 }
 
-function initNavigation() {
-    var html = navLevels.innerHTML;
-    var lines = html.split('\n');
-    for (var i = 1; i <= LEVELS; i++) {
-        lines.splice(i + 1, 0, '<button onclick="setLevel(' + i + ');">' + i + '</button>');
-    }
-    navLevels.innerHTML = lines.join('\n');
+function checkChanged() {
+    speedRange.disabled = !speedCheck.checked;
 }
 
-initNavigation();
+function saveWorkspace() {
+    var xml = Blockly.Xml.workspaceToDom(workspace);
+    BlocklyStorage.removeCoordinates(workspace, xml);
+    var text = Blockly.Xml.domToText(xml);
+    var blob = new Blob([text], {type: 'application/xml'});
+    saveAs(blob, "workspace.xml")
+}
+
+function loadWorkspace(file) {
+    var reader = new FileReader();
+    reader.onload = function () {
+        var dom = Blockly.Xml.textToDom(reader.result);
+        workspace.clear();
+        Blockly.Xml.domToWorkspace(dom, workspace);
+    };
+    reader.readAsText(file);
+}
 
 /*----------------------------------------------------------------------------------------------------------------------
-                                                      Simulation
+                                                         Levels
 ----------------------------------------------------------------------------------------------------------------------*/
 
 var level;
@@ -376,10 +406,6 @@ var queueData = {};
 
 var text = [""];
 var currentText = 0;
-
-var code = null;
-var myInterpreter = null;
-var runner = null;
 
 function setLevel(newLevel) {
     if (level !== newLevel) {
@@ -395,7 +421,7 @@ function loadLevel() {
     getJson('levels/' + level + '.json', function (result) {
         systemCount = result["system_count"];
         queueData = result["queue_data"];
-        workspace.updateToolbox(result["toolbox"]);
+        workspace.updateToolbox(result["toolbox"]); // TODO: Add advanced mode
         text = result["text"];
         currentText = 0;
         updateNavigation();
@@ -428,8 +454,8 @@ function updateNavigation() {
 function updateTableHead() {
     var currentSystems = tableHead.cells.length - 2;
     if (currentSystems < systemCount) {
-        for (var i = currentSystems; i < systemCount; i++) {
-            tableHead.insertCell(i + 1).innerHTML = 'Systeem ' + i;
+        for (var i = currentSystems + 1; i <= systemCount; i++) {
+            tableHead.insertCell(i).innerHTML = 'Systeem ' + i;
         }
     } else {
         for (var j = currentSystems; j > systemCount; j--) {
@@ -481,6 +507,10 @@ function nextText() {
 loadLevel();
 window.onpopstate = loadLevel;
 
+/*----------------------------------------------------------------------------------------------------------------------
+                                                       Simulation
+----------------------------------------------------------------------------------------------------------------------*/
+
 var systemQueue;
 var systemData;
 var currentSystem;
@@ -515,6 +545,7 @@ function noSend() {
 function sendData(value) {
     systemData[currentTimeslot][currentSystem] = value;
     tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = value !== null ? 'green' : 'red';
+    tableBody.rows[currentTimeslot].cells[currentSystem + 1].innerText = queueLength(currentSystem);
 }
 
 function nextSystem() {
@@ -562,7 +593,7 @@ function updateQueue() {
             sendCell.innerHTML = '-';
             sendCell.className = 'yellow';
         } else if (isSuccess(previousTimeslot)) {
-            sendCell.innerHTML = '&check;';
+            sendCell.innerHTML = '&check; ' + getControl(previousTimeslot);
             sendCell.className = 'green';
             var sender = getSender(previousTimeslot);
             systemQueue[sender] -= 1;
@@ -657,6 +688,14 @@ function isSender(systemId, timeslot) {
     return systemId === getSender(timeslot);
 }
 
+/*----------------------------------------------------------------------------------------------------------------------
+                                                      Execution
+----------------------------------------------------------------------------------------------------------------------*/
+
+var code = null;
+var myInterpreter = null;
+var runner = null;
+
 function codeChanged() {
     var variableCode = '';
     var systemCode = '';
@@ -670,6 +709,7 @@ function codeChanged() {
         systemCode = splitCode[1];
 
         for (var i = 0; i < variableNames.length; i++) {
+            // TODO: Breaks for variable names like 'a'
             var variableName = variableNames[i];
             variableCode += 'var ' + variableName + ' = [];\n';
             systemCode = systemCode.replace(new RegExp(variableName, 'g'), variableName + '[currentSystem()]');
@@ -717,10 +757,7 @@ workspace.addChangeListener(function (event) {
     }
 });
 
-function checkChanged() {
-    speedRange.disabled = !speedCheck.checked;
-}
-
+// TODO: Step per timeslot
 function runInterpreter() {
     if (!myInterpreter) {
         resetInterpreter();
@@ -764,20 +801,4 @@ function resetInterpreter() {
     runButton.innerText = "Simuleer!";
     runButton.className = "green";
     runButton.onclick = runInterpreter;
-}
-
-function saveWorkspace() {
-    saveAs(
-        new Blob([Blockly.Xml.domToText(Blockly.Xml.workspaceToDom(workspace))], {type: 'application/xml'}),
-        "workspace.xml"
-    )
-}
-
-function loadWorkspace(file) {
-    var reader = new FileReader();
-    reader.onload = function () {
-        var dom = Blockly.Xml.textToDom(reader.result);
-        Blockly.Xml.domToWorkspace(dom, workspace);
-    };
-    reader.readAsText(file);
 }
