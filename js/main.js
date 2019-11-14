@@ -153,7 +153,7 @@ Blockly.JavaScript['system_no_send'] = function () {
 };
 
 Blockly.JavaScript['system_send'] = function () {
-    return 'return 0;\n';
+    return 'return false;\n';
 };
 
 Blockly.JavaScript['system_send_control'] = function (block) {
@@ -279,7 +279,7 @@ var navLevels = document.getElementById('levels');
 var simulationVisualisation = document.getElementById('simulationVisualisation');
 var simulationBody = document.getElementById('simulationBody');
 var runButton = document.getElementById('runButton');
-var speedCheck = document.getElementById('speedCheck');
+var speedSelect = document.getElementById('speedSelect');
 var speedRange = document.getElementById('speedRange');
 
 var headerTable = document.getElementById('headerTable');
@@ -374,8 +374,8 @@ function getJson(url, callback) {
     xhr.send();
 }
 
-function checkChanged() {
-    speedRange.disabled = !speedCheck.checked;
+function speedSelectChanged() {
+    speedRange.disabled = speedSelect.value === 'nodelay';
 }
 
 function saveWorkspace() {
@@ -593,7 +593,8 @@ function updateQueue() {
             sendCell.innerHTML = '-';
             sendCell.className = 'yellow';
         } else if (isSuccess(previousTimeslot)) {
-            sendCell.innerHTML = '&check; ' + getControl(previousTimeslot);
+            var control = getControl(previousTimeslot);
+            sendCell.innerHTML = control === undefined ? '&check;' : '&check; ' + control;
             sendCell.className = 'green';
             var sender = getSender(previousTimeslot);
             systemQueue[sender] -= 1;
@@ -677,7 +678,7 @@ function getControl(timeslot) {
     if (isSuccess(timeslot)) {
         var timeslotData = systemData[timeslot];
         for (var i = 0; i < timeslotData.length; i++) {
-            if (timeslotData[i] !== null) {
+            if (timeslotData[i] !== null && timeslotData[i] !== false) {
                 return timeslotData[i];
             }
         }
@@ -757,7 +758,6 @@ workspace.addChangeListener(function (event) {
     }
 });
 
-// TODO: Step per timeslot
 function runInterpreter() {
     if (!myInterpreter) {
         resetInterpreter();
@@ -768,14 +768,31 @@ function runInterpreter() {
         myInterpreter = new Interpreter(code, initApi);
         runner = function () {
             if (myInterpreter) {
-                var hasMore;
-                var timeout;
-                if (speedCheck.checked) {
-                    hasMore = myInterpreter.step();
-                    timeout = speedRange.value;
-                } else {
-                    hasMore = myInterpreter.run();
-                    timeout = 0;
+                var hasMore = true;
+                var timeout = 0;
+                switch (speedSelect.value) {
+                    case 'nodelay':
+                        hasMore = myInterpreter.run();
+                        timeout = 0;
+                        break;
+                    case 'timeslot':
+                        var oldTimeslot = currentTimeslot;
+                        while (hasMore && oldTimeslot === currentTimeslot) {
+                            hasMore = myInterpreter.step();
+                        }
+                        timeout = speedRange.value * 10;
+                        break;
+                    case 'system':
+                        var oldSystem = currentSystem;
+                        while (hasMore && oldSystem === currentSystem) {
+                            hasMore = myInterpreter.step();
+                        }
+                        timeout = speedRange.value * 10;
+                        break;
+                    case 'block':
+                        hasMore = myInterpreter.step();
+                        timeout = speedRange.value;
+                        break;
                 }
                 if (hasMore) {
                     setTimeout(runner, timeout);

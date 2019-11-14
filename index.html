@@ -44,10 +44,14 @@
         <br>
         <button id="runButton" class="green" onclick="runInterpreter()">Simuleer!</button><!--
      --><br><br>
-        <input aria-label="Simulatie sneldheid" type="checkbox" id="speedCheck" onclick="checkChanged();" checked><!--
-     --><label for="speedRange">Simulatie vertragen:</label>
-        <br>
-        <input id="speedRange" type="range" min="0" max="100" step="1" value="0">
+        <label for="speedSelect">Vertraging: </label><!--
+     --><select id="speedSelect" onchange="speedSelectChanged()">
+            <option value="nodelay">Geen vertraging</option>
+            <option selected value="timeslot">Per tijdslot</option>
+            <option value="system">Per systeem</option>
+            <option value="block">Per blokje</option>
+        </select>
+        <input id="speedRange" type="range" min="0" max="100" step="1" value="0" aria-label="Simulatie sneldheid">
     </div>
 </div>
 <div id="blocklyArea"></div>
