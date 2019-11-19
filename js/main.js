@@ -710,10 +710,11 @@ function codeChanged() {
         systemCode = splitCode[1];
 
         for (var i = 0; i < variableNames.length; i++) {
-            // TODO: Breaks for variable names like 'a'
             var variableName = variableNames[i];
             variableCode += 'var ' + variableName + ' = [];\n';
-            systemCode = systemCode.replace(new RegExp(variableName, 'g'), variableName + '[currentSystem()]');
+            var variableRegex = new RegExp('\\b' + variableName + '\\b', 'g');
+            var newVariableName = variableName + '[currentSystem()]';
+            systemCode = systemCode.replace(variableRegex, newVariableName);
         }
     } else {
         console.error("Couldn't parse Blockly code:\n" + blocklyCode);
