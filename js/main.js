@@ -138,7 +138,7 @@ Blockly.JavaScript['system_send_control'] = function (block) {
 };
 
 Blockly.JavaScript['system_sender'] = function () {
-    return ['isSender(currentSystem(), currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+    return ['hasSend(currentSystem(), currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_empty_send'] = function () {
@@ -197,8 +197,8 @@ function initApi(interpreter, scope) {
         return queueLength(systemId);
     }));
 
-    interpreter.setProperty(scope, 'isSender', interpreter.createNativeFunction(function (systemId, timeslot) {
-        return isSender(systemId, timeslot);
+    interpreter.setProperty(scope, 'hasSend', interpreter.createNativeFunction(function (systemId, timeslot) {
+        return hasSend(systemId, timeslot);
     }));
 
     interpreter.setProperty(scope, 'isEmptySend', interpreter.createNativeFunction(function (timeslot) {
@@ -644,8 +644,8 @@ function getControl(timeslot) {
     }
 }
 
-function isSender(systemId, timeslot) {
-    return systemId === getSender(timeslot);
+function hasSend(systemId, timeslot) {
+    return systemData[timeslot][systemId] !== false
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
