@@ -163,8 +163,8 @@ Blockly.JavaScript['math_random_chance'] = function (block) {
 };
 
 Blockly.JavaScript.addReservedWords(
-    'highlightBlock,send,noSend,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,' +
-    'isCollision,currentSystem,currentTimeslot,alert,log,infiniteLoopCount'
+    'highlightBlock,send,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,isCollision,' +
+    'currentSystem,currentTimeslot,alert,log,infiniteLoopCount'
 );
 Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 
@@ -179,10 +179,6 @@ function initApi(interpreter, scope) {
 
     interpreter.setProperty(scope, 'send', interpreter.createNativeFunction(function (result) {
         return send(result);
-    }));
-
-    interpreter.setProperty(scope, 'noSend', interpreter.createNativeFunction(function () {
-        return noSend();
     }));
 
     interpreter.setProperty(scope, 'nextSystem', interpreter.createNativeFunction(function () {
@@ -495,18 +491,7 @@ function resetSystem() {
 }
 
 function send(value) {
-    if (hasQueue(currentSystem)) {
-        sendData(value);
-    } else {
-        console.log('Systeem ' + currentSystem + ' in timeslot ' + currentTimeslot +
-            ' probeerde te versturen maar had geen data');
-        sendData(null);
-    }
-    nextSystem();
-}
-
-function noSend() {
-    sendData(null);
+    sendData(value);
     nextSystem();
 }
 
@@ -565,7 +550,9 @@ function updateQueue() {
             sendCell.innerHTML = control === undefined ? '&check;' : '&check; ' + control;
             sendCell.className = 'green';
             var sender = getSender(previousTimeslot);
-            systemQueue[sender] -= 1;
+            if (hasQueue(sender)) {
+                systemQueue[sender] -= 1;
+            }
         } else {
             sendCell.innerHTML = '&cross;';
             sendCell.className = 'red';
@@ -602,7 +589,7 @@ function queueLength(systemId) {
 }
 
 function hasQueue(systemId) {
-    return systemQueue[systemId] > 0;
+    return queueLength(systemId) > 0;
 }
 
 function sendCount(timeslot) {
@@ -694,22 +681,17 @@ function codeChanged() {
         "    for (var i = 0; i < " + systemCount + "; i++) {\n" +
         "        var result = simulateSystem();\n" +
         "        if (result === undefined) {\n" +
-        "            log('Geen versturen of niet versturen tegengekomen bij systeem ' +\n" +
-        "                currentSystem() + ' in timeslot ' + currentTimeslot());\n" +
-        "            noSend();\n" +
-        "        } else if (result !== null) {\n" +
-        "            send(result);\n" +
-        "        } else {\n" +
-        "            noSend();\n" +
+        "            result = null;\n" +
         "        }\n" +
+        "        send(result);\n" +
         "    }\n" +
-        "   if (isSuccess(currentTimeslot())) {\n" +
-        "      infiniteLoopCount = 0;\n" +
-        "   } else if (++infiniteLoopCount > 100){\n" +
-        "      nextTimeslot();\n" +
-        "      alert('100 timeslots niet succesvol verstuurd, simulatie gestopt.');\n" +
-        "      break;\n" +
-        "   }\n" +
+        "    if (isSuccess(currentTimeslot())) {\n" +
+        "        infiniteLoopCount = 0;\n" +
+        "    } else if (++infiniteLoopCount > 100){\n" +
+        "        nextTimeslot();\n" +
+        "        alert('100 timeslots niet succesvol verstuurd, simulatie gestopt.');\n" +
+        "        break;\n" +
+        "    }\n" +
         "}\n" +
         "if (infiniteLoopCount <= 100) {\n" +
         "    levelCompleted();\n" +
