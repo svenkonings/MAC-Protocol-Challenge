@@ -1,3 +1,5 @@
+/** General markup **/
+
 html, body {
     height: 100%;
     margin: 0;
@@ -6,21 +8,46 @@ html, body {
 nav {
     height: 38px;
     padding: 4px 1em;
-    cursor: default;
 }
 
-nav a, nav button {
+nav a, nav button, nav img {
     display: inline-block;
     width: 38px;
     height: 38px;
     vertical-align: middle;
 }
 
+div {
+    font-family: sans-serif;
+}
+
+button {
+    color: #FFFFFF;
+    outline: none;
+    border: none;
+    font-size: 16px;
+    font-family: sans-serif;
+    white-space: nowrap;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+label {
+    font-family: sans-serif;
+    white-space: nowrap;
+}
+
+/** Specific markup **/
+
 #levels {
     display: inline-block;
-    width: calc(100% - 348px);
+    width: calc(100% - 350px);
     text-align: center;
-
 }
 
 #levels button {
@@ -58,9 +85,13 @@ nav a, nav button {
     cursor: not-allowed;
 }
 
-#logo {
-    width: 38px;
+#exportButton, #importButton, #shareButton {
+    width: 98px;
     height: 38px;
+}
+
+#importInput {
+    display: none;
 }
 
 #simulation {
@@ -93,6 +124,25 @@ nav a, nav button {
     bottom: 0;
 }
 
+#simulationControls button {
+    width: 30%;
+    height: 38px;
+}
+
+#blocklyArea {
+    width: 50%;
+    height: calc(100% - 46px);
+    float: left;
+}
+
+#blocklyDiv {
+    position: absolute;
+}
+
+#toolbox {
+    display: none;
+}
+
 #simulationHelp {
     position: relative;
     box-sizing: border-box;
@@ -116,43 +166,12 @@ nav a, nav button {
     text-align: center;
 }
 
-#simulationHelpButtons > button {
+#simulationHelpButtons button {
     width: 45%;
     height: 38px;
 }
 
-#simulationHelpButtons > button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-#runButton {
-    width: 95%;
-    height: 38px;
-}
-
-#exportButton, #importButton, #shareButton {
-    width: 98px;
-    height: 38px;
-}
-
-#importInput {
-    display: none;
-}
-
-#blocklyArea {
-    width: 50%;
-    height: calc(100% - 46px);
-    float: left;
-}
-
-#blocklyDiv {
-    position: absolute;
-}
-
-#toolbox {
-    display: none;
-}
+/** Colours **/
 
 .red {
     background-color: #EF5350;
@@ -174,22 +193,12 @@ nav a, nav button {
     background-color: #ddd;
 }
 
+/** Table formatting **/
+
 table {
     width: 100%;
     font-family: sans-serif;
     border-collapse: collapse;
-}
-
-tr {
-    height: 24px;
-}
-
-tr:first-child {
-    border-top: hidden;
-}
-
-#tableBody tr:last-child {
-    border-bottom: hidden;
 }
 
 td {
@@ -209,25 +218,19 @@ td:last-child {
     border-bottom: 2px double black;
 }
 
-div {
-    font-family: sans-serif;
+tr {
+    height: 24px;
 }
 
-button {
-    color: #FFFFFF;
-    outline: none;
-    border: none;
-    font-size: 16px;
-    font-family: sans-serif;
-    white-space: nowrap;
-    border-radius: 8px;
-    cursor: pointer;
+tr:first-child {
+    border-top: hidden;
 }
 
-label {
-    font-family: sans-serif;
-    white-space: nowrap;
+#tableBody tr:last-child {
+    border-bottom: hidden;
 }
+
+/** Input formatting **/
 
 input[type=range] {
     -webkit-appearance: none;
@@ -279,16 +282,4 @@ input[type=range]::-moz-range-thumb {
     height: 18px;
     width: 18px;
     cursor: pointer;
-}
-
-input[type=range][disabled]::-webkit-slider-thumb {
-    background-color: transparent;
-    border: 1px solid #d7dbdd;
-    cursor: not-allowed;
-}
-
-input[type=range][disabled]::-moz-range-thumb {
-    background-color: transparent;
-    border: 1px solid #d7dbdd;
-    cursor: not-allowed;
 }

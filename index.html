@@ -42,16 +42,17 @@
     </div>
     <div id="simulationControls">
         <br>
-        <button id="runButton" class="green" onclick="runInterpreter()">Simuleer!</button><!--
+        <button id="runButton" class="green" onclick="runInterpreter();">Simuleer!</button>
+        <button id="resumeButton" class="blue" onclick="startRunner();" disabled>Hervat</button>
+        <button id="stepButton" class="red" onclick="step();" disabled>Stap</button><!--
      --><br><br>
         <label for="speedSelect">Vertraging: </label><!--
-     --><select id="speedSelect" onchange="speedSelectChanged()">
-            <option value="nodelay">Geen vertraging</option>
+     --><select id="speedSelect">
             <option selected value="timeslot">Per tijdslot</option>
             <option value="system">Per systeem</option>
             <option value="block">Per blokje</option>
         </select>
-        <input id="speedRange" type="range" min="0" max="100" step="1" value="0" aria-label="Simulatie sneldheid">
+        <input id="speedRange" type="range" min="0" max="1000" step="10" value="0" aria-label="Simulatie sneldheid">
     </div>
 </div>
 <div id="blocklyArea"></div>

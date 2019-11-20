@@ -170,7 +170,7 @@ Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 
 function initApi(interpreter, scope) {
     interpreter.setProperty(scope, 'highlightBlock', interpreter.createNativeFunction(function (blockId) {
-        return workspace.highlightBlock(blockId);
+        return highlightBlock(blockId);
     }));
 
     interpreter.setProperty(scope, 'highlightSystem', interpreter.createNativeFunction(function (systemId) {
@@ -247,6 +247,8 @@ var navLevels = document.getElementById('levels');
 var simulationVisualisation = document.getElementById('simulationVisualisation');
 var simulationBody = document.getElementById('simulationBody');
 var runButton = document.getElementById('runButton');
+var resumeButton = document.getElementById('resumeButton');
+var stepButton = document.getElementById('stepButton');
 var speedSelect = document.getElementById('speedSelect');
 var speedRange = document.getElementById('speedRange');
 
@@ -340,10 +342,6 @@ function getJson(url, callback) {
         callback(JSON.parse(xhr.responseText));
     };
     xhr.send();
-}
-
-function speedSelectChanged() {
-    speedRange.disabled = speedSelect.value === 'nodelay';
 }
 
 function saveWorkspace() {
@@ -484,6 +482,8 @@ var systemData;
 var currentSystem;
 var currentTimeslot;
 
+var newHighlight;
+
 function resetSystem() {
     systemQueue = [];
     for (var i = 0; i < systemCount; i++) {
@@ -534,6 +534,11 @@ function addRow() {
     if (atBottom) {
         simulationBody.scrollTop = (simulationBody.scrollHeight - simulationBody.clientHeight) + 1;
     }
+}
+
+function highlightBlock(blockId) {
+    newHighlight = true;
+    return workspace.highlightBlock(blockId);
 }
 
 function highlightSystem(systemId) {
@@ -651,7 +656,6 @@ function hasSend(systemId, timeslot) {
 /*----------------------------------------------------------------------------------------------------------------------
                                                       Execution
 ----------------------------------------------------------------------------------------------------------------------*/
-// TODO: Add resume and step button
 var blocklyCode = null;
 var code = null;
 var myInterpreter = null;
@@ -719,64 +723,85 @@ workspace.addChangeListener(function (event) {
     }
 });
 
-function runInterpreter() {
-    if (!myInterpreter) {
-        resetInterpreter();
-        resetSystem();
-        runButton.innerText = "Stop!";
-        runButton.className = "red";
-        runButton.onclick = resetInterpreter;
-        myInterpreter = new Interpreter(code, initApi);
-        runner = function () {
-            if (myInterpreter) {
-                var hasMore = true;
-                var timeout = 0;
-                switch (speedSelect.value) {
-                    case 'nodelay':
-                        hasMore = myInterpreter.run();
-                        timeout = 0;
-                        break;
-                    case 'timeslot':
-                        var oldTimeslot = currentTimeslot;
-                        while (hasMore && oldTimeslot === currentTimeslot) {
-                            hasMore = myInterpreter.step();
-                        }
-                        timeout = speedRange.value * 10;
-                        break;
-                    case 'system':
-                        var oldSystem = currentSystem;
-                        while (hasMore && oldSystem === currentSystem) {
-                            hasMore = myInterpreter.step();
-                        }
-                        timeout = speedRange.value * 10;
-                        break;
-                    case 'block':
-                        hasMore = myInterpreter.step();
-                        timeout = speedRange.value;
-                        break;
+function run() {
+    if (myInterpreter) {
+        var hasMore = true;
+        switch (speedSelect.value) {
+            case 'timeslot':
+                var oldTimeslot = currentTimeslot;
+                while (hasMore && oldTimeslot === currentTimeslot) {
+                    hasMore = myInterpreter.step();
                 }
-                if (hasMore) {
-                    setTimeout(runner, timeout);
-                } else {
-                    resetInterpreter();
+                break;
+            case 'system':
+                var oldSystem = currentSystem;
+                while (hasMore && oldSystem === currentSystem) {
+                    hasMore = myInterpreter.step();
                 }
-            }
-        };
-        runner();
+                break;
+            case 'block':
+                hasMore = step();
+                break;
+        }
+        if (hasMore) {
+            runner = setTimeout(run, speedRange.value);
+        } else if (myInterpreter) {
+            resetInterpreter();
+        }
     }
 }
 
+function runInterpreter() {
+    resetInterpreter();
+    resetSystem();
+    myInterpreter = new Interpreter(code, initApi);
+    startRunner();
+}
+
 function resetInterpreter() {
+    stopRunner();
+    resumeButton.disabled = true;
+    stepButton.disabled = true;
     myInterpreter = null;
-    if (runner) {
-        clearTimeout(runner);
-        runner = null;
-    }
     workspace.highlightBlock(null);
     for (var i = 0; i < systemCount; i++) {
         tableHead.cells[i + 1].className = '';
     }
-    runButton.innerText = "Simuleer!";
-    runButton.className = "green";
-    runButton.onclick = runInterpreter;
+}
+
+function startRunner() {
+    if (runner === null) {
+        runButton.innerText = "Stop!";
+        runButton.className = "red";
+        runButton.onclick = stopRunner;
+        resumeButton.disabled = true;
+        stepButton.disabled = true;
+        runner = setTimeout(run, 0);
+    }
+}
+
+function stopRunner() {
+    if (runner) {
+        clearTimeout(runner);
+        runner = null;
+        runButton.innerText = "Simuleer!";
+        runButton.className = "green";
+        runButton.onclick = runInterpreter;
+        resumeButton.disabled = false;
+        stepButton.disabled = false;
+    }
+}
+
+function step() {
+    if (myInterpreter) {
+        var hasMore = true;
+        newHighlight = false;
+        while (hasMore && !newHighlight) {
+            hasMore = myInterpreter.step();
+        }
+        if (!hasMore) {
+            resetInterpreter();
+        }
+        return hasMore;
+    }
 }
