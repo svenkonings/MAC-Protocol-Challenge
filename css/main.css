@@ -26,7 +26,6 @@ nav a, nav button {
 #levels button {
     color: black;
     border: 2px solid #555;
-    line-height: 2.5;
 }
 
 #levels button:first-child {
@@ -169,6 +168,10 @@ nav a, nav button {
 
 .yellow {
     background-color: #FFC107;
+}
+
+.gray {
+    background-color: #ddd;
 }
 
 table {

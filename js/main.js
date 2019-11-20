@@ -27,22 +27,6 @@ Blockly.defineBlocksWithJsonArray([
         "helpUrl": ""
     },
     {
-        "type": "system_timeslot",
-        "message0": "Tijdslot",
-        "output": "Number",
-        "colour": 160,
-        "tooltip": "Geeft het huidige tijdslot terug.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_count",
-        "message0": "Aantal systemen",
-        "output": "Number",
-        "colour": 160,
-        "tooltip": "Geeft het aantal systemen terug.",
-        "helpUrl": ""
-    },
-    {
         "type": "system_no_send",
         "message0": "Niet versturen",
         "previousStatement": null,
@@ -140,14 +124,6 @@ Blockly.JavaScript['system_queue_length'] = function () {
     return ['queueLength(currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
-Blockly.JavaScript['system_timeslot'] = function () {
-    return ['currentTimeslot()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript['system_count'] = function () {
-    return ['systemCount()', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
 Blockly.JavaScript['system_no_send'] = function () {
     return 'return null;\n';
 };
@@ -188,13 +164,17 @@ Blockly.JavaScript['math_random_chance'] = function (block) {
 
 Blockly.JavaScript.addReservedWords(
     'highlightBlock,send,noSend,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,' +
-    'isCollision,getSender,currentSystem,currentTimeslot,systemCount,alert,log,infiniteLoopCount'
+    'isCollision,currentSystem,currentTimeslot,alert,log,infiniteLoopCount'
 );
 Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 
 function initApi(interpreter, scope) {
     interpreter.setProperty(scope, 'highlightBlock', interpreter.createNativeFunction(function (blockId) {
         return workspace.highlightBlock(blockId);
+    }));
+
+    interpreter.setProperty(scope, 'highlightSystem', interpreter.createNativeFunction(function (systemId) {
+        return highlightSystem(systemId);
     }));
 
     interpreter.setProperty(scope, 'send', interpreter.createNativeFunction(function (result) {
@@ -213,20 +193,12 @@ function initApi(interpreter, scope) {
         return nextTimeslot();
     }));
 
-    interpreter.setProperty(scope, 'highlightSystem', interpreter.createNativeFunction(function (systemId) {
-        return highlightSystem(systemId);
-    }));
-
     interpreter.setProperty(scope, 'hasQueue', interpreter.createNativeFunction(function (systemId) {
         return hasQueue(systemId);
     }));
 
     interpreter.setProperty(scope, 'queueLength', interpreter.createNativeFunction(function (systemId) {
         return queueLength(systemId);
-    }));
-
-    interpreter.setProperty(scope, 'getSender', interpreter.createNativeFunction(function (timeslot) {
-        return getSender(timeslot);
     }));
 
     interpreter.setProperty(scope, 'isSender', interpreter.createNativeFunction(function (systemId, timeslot) {
@@ -255,10 +227,6 @@ function initApi(interpreter, scope) {
 
     interpreter.setProperty(scope, 'currentTimeslot', interpreter.createNativeFunction(function () {
         return currentTimeslot;
-    }));
-
-    interpreter.setProperty(scope, 'systemCount', interpreter.createNativeFunction(function () {
-        return systemCount;
     }));
 
     interpreter.setProperty(scope, 'alert', interpreter.createNativeFunction(function (text) {
