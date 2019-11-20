@@ -164,7 +164,7 @@ Blockly.JavaScript['math_random_chance'] = function (block) {
 
 Blockly.JavaScript.addReservedWords(
     'highlightBlock,send,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,isCollision,' +
-    'currentSystem,currentTimeslot,alert,log,infiniteLoopCount'
+    'currentSystem,currentTimeslot,systemCount,alert,log,infiniteLoopCount'
 );
 Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 
@@ -223,6 +223,10 @@ function initApi(interpreter, scope) {
 
     interpreter.setProperty(scope, 'currentTimeslot', interpreter.createNativeFunction(function () {
         return currentTimeslot;
+    }));
+
+    interpreter.setProperty(scope, 'systemCount', interpreter.createNativeFunction(function () {
+        return systemCount;
     }));
 
     interpreter.setProperty(scope, 'levelCompleted', interpreter.createNativeFunction(function () {
@@ -647,16 +651,22 @@ function isSender(systemId, timeslot) {
 /*----------------------------------------------------------------------------------------------------------------------
                                                       Execution
 ----------------------------------------------------------------------------------------------------------------------*/
-
+// TODO: Add resume and step button
+var blocklyCode = null;
 var code = null;
 var myInterpreter = null;
 var runner = null;
 
 function codeChanged() {
+    var newCode = Blockly.JavaScript.workspaceToCode(workspace);
+    if (blocklyCode === newCode) {
+        // Code hasn't changed
+        return;
+    }
+    blocklyCode = newCode;
+
     var variableCode = '';
     var systemCode = '';
-
-    var blocklyCode = Blockly.JavaScript.workspaceToCode(workspace);
     var splitCode = blocklyCode.split('\n\n\n');
     if (splitCode.length === 1) {
         systemCode = splitCode[0];
@@ -678,7 +688,7 @@ function codeChanged() {
     code = variableCode +
         "var infiniteLoopCount = 0;\n" +
         "while (nextTimeslot()) {\n" +
-        "    for (var i = 0; i < " + systemCount + "; i++) {\n" +
+        "    for (var i = 0; i < systemCount(); i++) {\n" +
         "        var result = simulateSystem();\n" +
         "        if (result === undefined) {\n" +
         "            result = false;\n" +
