@@ -125,11 +125,11 @@ Blockly.JavaScript['system_queue_length'] = function () {
 };
 
 Blockly.JavaScript['system_no_send'] = function () {
-    return 'return null;\n';
+    return 'return false;\n';
 };
 
 Blockly.JavaScript['system_send'] = function () {
-    return 'return false;\n';
+    return 'return true;\n';
 };
 
 Blockly.JavaScript['system_send_control'] = function (block) {
@@ -225,16 +225,16 @@ function initApi(interpreter, scope) {
         return currentTimeslot;
     }));
 
+    interpreter.setProperty(scope, 'levelCompleted', interpreter.createNativeFunction(function () {
+        return levelCompleted();
+    }));
+
     interpreter.setProperty(scope, 'alert', interpreter.createNativeFunction(function (text) {
         return alert(text);
     }));
 
     interpreter.setProperty(scope, 'log', interpreter.createNativeFunction(function (text) {
         return console.log(text);
-    }));
-
-    interpreter.setProperty(scope, 'levelCompleted', interpreter.createNativeFunction(function () {
-        return levelCompleted();
     }));
 }
 
@@ -497,7 +497,7 @@ function send(value) {
 
 function sendData(value) {
     systemData[currentTimeslot][currentSystem] = value;
-    tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = value !== null ? 'green' : 'red';
+    tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = value !== false ? 'blue' : 'gray';
     tableBody.rows[currentTimeslot].cells[currentSystem + 1].innerText = queueLength(currentSystem);
 }
 
@@ -599,7 +599,7 @@ function sendCount(timeslot) {
     var sendCount = 0;
     var timeslotData = systemData[timeslot];
     for (var i = 0; i < timeslotData.length; i++) {
-        if (timeslotData[i] !== null) {
+        if (timeslotData[i] !== false) {
             sendCount++
         }
     }
@@ -622,7 +622,7 @@ function getSender(timeslot) {
     if (isSuccess(timeslot)) {
         var timeslotData = systemData[timeslot];
         for (var i = 0; i < timeslotData.length; i++) {
-            if (timeslotData[i] !== null) {
+            if (timeslotData[i] !== false) {
                 return i;
             }
         }
@@ -633,7 +633,7 @@ function getControl(timeslot) {
     if (isSuccess(timeslot)) {
         var timeslotData = systemData[timeslot];
         for (var i = 0; i < timeslotData.length; i++) {
-            if (timeslotData[i] !== null && timeslotData[i] !== false) {
+            if (timeslotData[i] !== false && timeslotData[i] !== true) {
                 return timeslotData[i];
             }
         }
@@ -681,7 +681,7 @@ function codeChanged() {
         "    for (var i = 0; i < " + systemCount + "; i++) {\n" +
         "        var result = simulateSystem();\n" +
         "        if (result === undefined) {\n" +
-        "            result = null;\n" +
+        "            result = false;\n" +
         "        }\n" +
         "        send(result);\n" +
         "    }\n" +
