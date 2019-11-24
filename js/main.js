@@ -117,11 +117,11 @@ Blockly.defineBlocksWithJsonArray([
 ]);
 
 Blockly.JavaScript['system_has_queue'] = function () {
-    return ['hasQueue(currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+    return ['hasQueue(currentTimeslot(), currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_queue_length'] = function () {
-    return ['queueLength(currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+    return ['queueLength(currentTimeslot(), currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_no_send'] = function () {
@@ -138,7 +138,7 @@ Blockly.JavaScript['system_send_control'] = function (block) {
 };
 
 Blockly.JavaScript['system_sender'] = function () {
-    return ['hasSend(currentSystem(), currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+    return ['hasSend(currentTimeslot()-1, currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
 
 Blockly.JavaScript['system_empty_send'] = function () {
@@ -189,16 +189,16 @@ function initApi(interpreter, scope) {
         return nextTimeslot();
     }));
 
-    interpreter.setProperty(scope, 'hasQueue', interpreter.createNativeFunction(function (systemId) {
-        return hasQueue(systemId);
+    interpreter.setProperty(scope, 'hasQueue', interpreter.createNativeFunction(function (timeslot, systemId) {
+        return hasQueue(timeslot, systemId);
     }));
 
-    interpreter.setProperty(scope, 'queueLength', interpreter.createNativeFunction(function (systemId) {
-        return queueLength(systemId);
+    interpreter.setProperty(scope, 'queueLength', interpreter.createNativeFunction(function (timeslot, systemId) {
+        return queueLength(timeslot, systemId);
     }));
 
-    interpreter.setProperty(scope, 'hasSend', interpreter.createNativeFunction(function (systemId, timeslot) {
-        return hasSend(systemId, timeslot);
+    interpreter.setProperty(scope, 'hasSend', interpreter.createNativeFunction(function (timeslot, systemId) {
+        return hasSend(timeslot, systemId);
     }));
 
     interpreter.setProperty(scope, 'isEmptySend', interpreter.createNativeFunction(function (timeslot) {
@@ -399,12 +399,13 @@ function loadLevel() {
 }
 
 function levelCompleted() {
+    var score = calculateScore();
     if (level < LEVELS) {
-        if (confirm('Level gehaald! Wil je naar het volgende level gaan?')) {
+        if (confirm('Score: ' + score + '\nLevel gehaald! Wil je naar het volgende level gaan?')) {
             setLevel(level + 1);
         }
     } else {
-        alert('Level gehaald!');
+        alert('Score: ' + score + '\nLevel gehaald!');
     }
 }
 
@@ -486,8 +487,9 @@ var newHighlight;
 
 function resetSystem() {
     systemQueue = [];
+    systemQueue[0] = [];
     for (var i = 0; i < systemCount; i++) {
-        systemQueue[i] = 0;
+        systemQueue[0][i] = 0;
     }
     systemData = [];
     currentTimeslot = -1;
@@ -502,7 +504,7 @@ function send(value) {
 function sendData(value) {
     systemData[currentTimeslot][currentSystem] = value;
     tableBody.rows[currentTimeslot].cells[currentSystem + 1].className = value !== false ? 'blue' : 'gray';
-    tableBody.rows[currentTimeslot].cells[currentSystem + 1].innerText = queueLength(currentSystem);
+    tableBody.rows[currentTimeslot].cells[currentSystem + 1].innerText = queueLength(currentTimeslot, currentSystem);
 }
 
 function nextSystem() {
@@ -549,6 +551,9 @@ function highlightSystem(systemId) {
 
 function updateQueue() {
     var previousTimeslot = currentTimeslot - 1;
+    if (currentTimeslot > 0) {
+        systemQueue.push(systemQueue[previousTimeslot].slice());
+    }
     if (previousTimeslot >= 0) {
         var sendCell = tableBody.rows[previousTimeslot].cells[systemCount + 1];
         if (isEmptySend(previousTimeslot)) {
@@ -559,8 +564,8 @@ function updateQueue() {
             sendCell.innerHTML = control === undefined ? '&check;' : '&check; ' + control;
             sendCell.className = 'green';
             var sender = getSender(previousTimeslot);
-            if (hasQueue(sender)) {
-                systemQueue[sender] -= 1;
+            if (hasQueue(currentTimeslot, sender)) {
+                systemQueue[currentTimeslot][sender] -= 1;
             }
         } else {
             sendCell.innerHTML = '&cross;';
@@ -572,19 +577,20 @@ function updateQueue() {
 
 function addQueueData(timeslot) {
     var newData = queueData[timeslot];
+    var currentQueue = systemQueue[timeslot];
     if (newData) {
-        for (var i = 0; i < systemQueue.length; i++) {
-            systemQueue[i] += newData[i];
+        for (var i = 0; i < currentQueue.length; i++) {
+            currentQueue[i] += newData[i];
         }
     }
 }
 
 function noMoreQueue() {
-    return currentTimeslot >= maxQueueTimeslot() && totalQueue() === 0;
+    return currentTimeslot >= maxQueueTimeslot() && totalQueue(currentTimeslot) === 0;
 }
 
-function totalQueue() {
-    return systemQueue.reduce(function (a, b) {
+function totalQueue(timeslot) {
+    return systemQueue[timeslot].reduce(function (a, b) {
         return a + b;
     }, 0);
 }
@@ -593,12 +599,12 @@ function maxQueueTimeslot() {
     return Math.max.apply(null, Object.keys(queueData));
 }
 
-function queueLength(systemId) {
-    return systemQueue[systemId];
+function queueLength(timeslot, systemId) {
+    return systemQueue[timeslot][systemId];
 }
 
-function hasQueue(systemId) {
-    return queueLength(systemId) > 0;
+function hasQueue(timeslot, systemId) {
+    return queueLength(timeslot, systemId) > 0;
 }
 
 function sendCount(timeslot) {
@@ -649,8 +655,57 @@ function getControl(timeslot) {
     }
 }
 
-function hasSend(systemId, timeslot) {
+function hasSend(timeslot, systemId) {
     return systemData[timeslot][systemId] !== false
+}
+
+/*----------------------------------------------------------------------------------------------------------------------
+                                                        Score
+----------------------------------------------------------------------------------------------------------------------*/
+function calculateScore() {
+    return (calculateEfficiency() * calculateFairness()).toFixed(2);
+}
+
+function calculateEfficiency() {
+    var dataSlots = 0;
+    var successes = 0;
+    for (var timeslot = 0; timeslot < currentTimeslot; timeslot++) {
+        if (totalQueue(timeslot) > 0) {
+            dataSlots += 1;
+            if (isSuccess(timeslot)) {
+                successes += 1;
+            }
+        }
+    }
+    return successes / dataSlots;
+}
+
+function countQueue(timeslot) {
+    var count = 0;
+    for (var system = 0; system < systemCount; system++) {
+        if (hasQueue(timeslot, system)) {
+            count++;
+        }
+    }
+    return count;
+}
+
+function calculateFairness() {
+    var systemFairness = [];
+    for (var system = 0; system < systemCount; system++) {
+        systemFairness[system] = 0;
+        for (var timeslot = 0; timeslot < currentTimeslot; timeslot++) {
+            if (hasQueue(timeslot, system)) {
+                systemFairness[system] -= 1 / countQueue(timeslot);
+                if (hasSend(timeslot, system) && isSuccess(timeslot)) {
+                    systemFairness[system] += 1;
+                }
+            }
+        }
+    }
+    return 1000 - systemFairness.reduce(function (a, b) {
+        return a + Math.abs(b);
+    });
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
