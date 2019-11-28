@@ -1,3 +1,4 @@
+'use strict';
 /*----------------------------------------------------------------------------------------------------------------------
                                                    Initialisation
 ----------------------------------------------------------------------------------------------------------------------*/
@@ -725,7 +726,7 @@ function codeChanged() {
     blocklyCode = newCode;
 
     var variableCode = '';
-    var systemCode = '';
+    var systemCode;
     var splitCode = blocklyCode.split('\n\n\n');
     if (splitCode.length === 1) {
         systemCode = splitCode[0];
