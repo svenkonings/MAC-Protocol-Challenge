@@ -8,7 +8,6 @@
     <script src="js/blockly/blockly_compressed.js"></script>
     <script src="js/blockly/blocks_compressed.js"></script>
     <script src="js/blockly/javascript_compressed.js"></script>
-    <script src="js/blockly/appengine/storage.js"></script>
     <script src="js/blockly/msg/js/nl.js"></script>
     <link rel="stylesheet" type="text/css" href="css/main.css" media="all"/>
 </head>
@@ -19,10 +18,10 @@
         <button onclick="setLevel(level - 1);"></button>
         <button onclick="setLevel(level + 1);"></button>
     </div>
-    <button id="exportButton" class="green" onclick="saveWorkspace();">Exporteer!</button>
+    <button id="exportButton" class="green" onclick="saveWorkspaceToFile();">Exporteer!</button>
     <button id="importButton" class="red" onclick="document.getElementById('importInput').click();">Importeer!</button>
-    <input id="importInput" type="file" accept="application/xml" onchange="loadWorkspace(this.files[0]);" onclick="this.value=null;">
-    <button id="shareButton" class="blue" onclick="BlocklyStorage.link();">Link delen!</button>
+    <input id="importInput" type="file" accept="application/xml" onchange="loadWorkspaceFromFile(this.files[0]);" onclick="this.value=null;">
+    <button id="shareButton" class="blue" onclick="saveWorkspaceToDatabase();">Link delen!</button>
 </nav>
 <div id="simulation">
     <div id="simulationVisualisation">

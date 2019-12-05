@@ -5,11 +5,6 @@
 
 var LEVELS = 6;
 
-BlocklyStorage.HTTPREQUEST_ERROR = 'Er is een probleem opgetreden tijdens het verwerken van het verzoek.\n';
-BlocklyStorage.LINK_ALERT = 'Deel je blokken via deze koppeling:\n\n%1';
-BlocklyStorage.HASH_ERROR = '\"%1\" komt helaas niet overeen met een opgeslagen bestand.';
-BlocklyStorage.XML_ERROR = 'Je opgeslagen bestand kan niet geladen worden. Is het misschien gemaakt met een andere versie van Blockly?';
-
 Blockly.defineBlocksWithJsonArray([
     {
         "type": "system_has_queue",
@@ -273,16 +268,16 @@ var workspace = Blockly.inject(blocklyDiv, {
 
 function restoreWorkspace() {
     if (window.location.hash.length > 1) {
-        BlocklyStorage.retrieveXml(window.location.hash.substring(1));
+        loadWorkspaceFromDatabase(window.location.hash.substring(1));
     } else {
         try {
-            BlocklyStorage.restoreBlocks();
+            restoreBlocks();
         } catch (e) {
             console.error("Couldn't restore blocks:", e);
             workspace.clear();
         }
     }
-    BlocklyStorage.backupOnUnload();
+    backupOnUnload();
 }
 
 restoreWorkspace();
@@ -345,22 +340,99 @@ function getJson(url, callback) {
     xhr.send();
 }
 
-function saveWorkspace() {
+function postJson(url, data, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.onload = function () {
+        callback(JSON.parse(xhr.responseText));
+    };
+    xhr.send(JSON.stringify(data));
+}
+
+/*----------------------------------------------------------------------------------------------------------------------
+                                                       Workspace
+----------------------------------------------------------------------------------------------------------------------*/
+
+function removeAttributes(workspace, xml) {
+    xml.querySelectorAll("*").forEach(function (block) {
+        block.removeAttribute('x');
+        block.removeAttribute('y');
+        block.removeAttribute('id');
+    });
+}
+
+function serializeWorkspace(sanitize) {
     var xml = Blockly.Xml.workspaceToDom(workspace);
-    BlocklyStorage.removeCoordinates(workspace, xml);
-    var text = Blockly.Xml.domToText(xml);
-    var blob = new Blob([text], {type: 'application/xml'});
+    if (sanitize) {
+        removeAttributes(workspace, xml);
+    }
+    return Blockly.Xml.domToText(xml);
+}
+
+function saveWorkspaceToDatabase() {
+    var data = {'workspace': serializeWorkspace(true)};
+    postJson('/api/workspace/create.php', data, function (response) {
+        var hash = response['id'];
+        window.location.hash = hash;
+        monitorChanges();
+        alert('Deel je blokken via deze koppeling:\n\n%1'.replace('%1', window.location.href));
+    });
+}
+
+function monitorChanges() {
+    var startDom = serializeWorkspace(true);
+
+    function change() {
+        var newDom = serializeWorkspace(true);
+        if (startDom !== newDom) {
+            window.location.hash = '';
+            workspace.removeChangeListener(change);
+        }
+    }
+
+    workspace.addChangeListener(change);
+}
+
+function saveWorkspaceToFile() {
+    var data = serializeWorkspace(true);
+    var blob = new Blob([data], {type: 'application/xml'});
     saveAs(blob, "workspace.xml")
 }
 
-function loadWorkspace(file) {
+function loadWorkspaceFromDatabase(hash) {
+    getJson('/api/workspace/read_one.php?id=' + hash, function (response) {
+        loadWorkspace(response['workspace']);
+        monitorChanges();
+    });
+}
+
+function loadWorkspaceFromFile(file) {
     var reader = new FileReader();
     reader.onload = function () {
-        var dom = Blockly.Xml.textToDom(reader.result);
-        workspace.clear();
-        Blockly.Xml.domToWorkspace(dom, workspace);
+        loadWorkspace(reader.result);
     };
     reader.readAsText(file);
+}
+
+function loadWorkspace(text) {
+    var dom = Blockly.Xml.textToDom(text);
+    workspace.clear();
+    Blockly.Xml.domToWorkspace(dom, workspace);
+}
+
+function restoreBlocks() {
+    var url = window.location.href.split('#')[0];
+    if (window.localStorage[url]) {
+        loadWorkspace(window.localStorage[url])
+    }
+}
+
+function backupOnUnload() {
+    window.addEventListener('unload', function () {
+        var url = window.location.href.split('#')[0];
+        window.localStorage.setItem(url, serializeWorkspace(false));
+    }, false);
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -385,11 +457,11 @@ function loadLevel() {
     var levelParam = parseInt(getParam('level'));
     level = levelParam ? levelParam : 1;
 
-    getJson('levels/' + level + '.json', function (result) {
-        systemCount = result["system_count"];
-        queueData = result["queue_data"];
-        workspace.updateToolbox(result["toolbox"]); // TODO: Add advanced mode
-        text = result["text"];
+    getJson('levels/' + level + '.json', function (response) {
+        systemCount = response["system_count"];
+        queueData = response["queue_data"];
+        workspace.updateToolbox(response["toolbox"]); // TODO: Add advanced mode
+        text = response["text"];
         currentText = 0;
         updateNavigation();
         updateTableHead();
@@ -401,6 +473,7 @@ function loadLevel() {
 
 function levelCompleted() {
     var score = calculateScore();
+    submitScore(score, systemQueue, systemData);
     if (level < LEVELS) {
         if (confirm('Score: ' + score + '\nLevel gehaald! Wil je naar het volgende level gaan?')) {
             setLevel(level + 1);
@@ -408,6 +481,17 @@ function levelCompleted() {
     } else {
         alert('Score: ' + score + '\nLevel gehaald!');
     }
+}
+
+function submitScore(score, queue, data) {
+    var stats = {
+        "score": score,
+        "queue": queue,
+        "data": data
+    };
+    postJson('/api/score/create.php', stats, function (response) {
+        console.log(response);
+    });
 }
 
 function updateNavigation() {
