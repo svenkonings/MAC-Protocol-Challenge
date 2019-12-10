@@ -15,10 +15,14 @@ $file = file_get_contents("php://input");
 $json = json_decode($file);
 
 if (
+    !empty($json->version) &&
+    !empty($json->level) &&
     !empty($json->score) &&
     !empty($json->queue) &&
     !empty($json->data)
 ) {
+    $score->version = $json->version;
+    $score->level = $json->level;
     $score->score = $json->score;
     $score->queue = json_encode($json->queue);
     $score->data = json_encode($json->data);

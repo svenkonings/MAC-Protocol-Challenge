@@ -15,7 +15,8 @@ $workspace = new Workspace($db);
 $file = file_get_contents("php://input");
 $json = json_decode($file);
 
-if (!empty($json->workspace)) {
+if (!empty($json->version) && !empty($json->workspace)) {
+    $workspace->version = $json->version;
     $workspace->workspace = $json->workspace;
     $workspace->generateId($file);
 

@@ -6,6 +6,8 @@ class Score
     private $exists;
 
     public $id;
+    public $version;
+    public $level;
     public $score;
     public $queue;
     public $data;
@@ -19,9 +21,9 @@ class Score
     public function create()
     {
         if ($this->exists) return true;
-        $query = "INSERT INTO scores SET id=?, score=?, queue=?, data=?;";
+        $query = "INSERT INTO scores SET id=?, version=?, level=?, score=?, queue=?, data=?;";
         $stmt = $this->conn->prepare($query);
-        if ($stmt->execute([$this->id, $this->score, $this->queue, $this->data])) {
+        if ($stmt->execute([$this->id, $this->version, $this->level, $this->score, $this->queue, $this->data])) {
             $this->exists = true;
             return true;
         } else {
@@ -53,7 +55,7 @@ class Score
 
     public function read($offset, $amount)
     {
-        $query = "SELECT id, ts, score FROM scores ORDER BY score DESC LIMIT :offset, :amount;";
+        $query = "SELECT id, ts, version, level, score FROM scores ORDER BY score DESC LIMIT :offset, :amount;";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":amount", $amount, PDO::PARAM_INT);
         $stmt->bindParam(":offset", $offset, PDO::PARAM_INT);

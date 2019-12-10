@@ -3,6 +3,7 @@
                                                    Initialisation
 ----------------------------------------------------------------------------------------------------------------------*/
 
+var VERSION = 1;
 var LEVELS = 6;
 
 Blockly.defineBlocksWithJsonArray([
@@ -322,9 +323,9 @@ Blockly.svgResize(workspace);
 
 function getParam(variable) {
     var query = window.location.search.substring(1);
-    var vars = query.split("&");
+    var vars = query.split('&');
     for (var i = 0; i < vars.length; i++) {
-        var pair = vars[i].split("=");
+        var pair = vars[i].split('=');
         if (pair[0] === variable) {
             return pair[1];
         }
@@ -355,7 +356,7 @@ function postJson(url, data, callback) {
 ----------------------------------------------------------------------------------------------------------------------*/
 
 function removeAttributes(workspace, xml) {
-    xml.querySelectorAll("*").forEach(function (block) {
+    xml.querySelectorAll('*').forEach(function (block) {
         block.removeAttribute('x');
         block.removeAttribute('y');
         block.removeAttribute('id');
@@ -371,7 +372,7 @@ function serializeWorkspace(sanitize) {
 }
 
 function saveWorkspaceToDatabase() {
-    var data = {'workspace': serializeWorkspace(true)};
+    var data = {'version': VERSION, 'workspace': serializeWorkspace(true)};
     postJson('/api/workspace/create.php', data, function (response) {
         var hash = response['id'];
         window.location.hash = hash;
@@ -397,7 +398,7 @@ function monitorChanges() {
 function saveWorkspaceToFile() {
     var data = serializeWorkspace(true);
     var blob = new Blob([data], {type: 'application/xml'});
-    saveAs(blob, "workspace.xml")
+    saveAs(blob, 'workspace.xml')
 }
 
 function loadWorkspaceFromDatabase(hash) {
@@ -443,7 +444,7 @@ var level;
 var systemCount = 0;
 var queueData = {};
 
-var text = [""];
+var text = [''];
 var currentText = 0;
 
 function setLevel(newLevel) {
@@ -458,10 +459,10 @@ function loadLevel() {
     level = levelParam ? levelParam : 1;
 
     getJson('levels/' + level + '.json', function (response) {
-        systemCount = response["system_count"];
-        queueData = response["queue_data"];
-        workspace.updateToolbox(response["toolbox"]); // TODO: Add advanced mode
-        text = response["text"];
+        systemCount = response['system_count'];
+        queueData = response['queue_data'];
+        workspace.updateToolbox(response['toolbox']); // TODO: Add advanced mode
+        text = response['text'];
         currentText = 0;
         updateNavigation();
         updateTableHead();
@@ -473,7 +474,7 @@ function loadLevel() {
 
 function levelCompleted() {
     var score = calculateScore();
-    submitScore(score, systemQueue, systemData);
+    submitScore(VERSION, level ,score, systemQueue, systemData);
     if (level < LEVELS) {
         if (confirm('Score: ' + score + '\nLevel gehaald! Wil je naar het volgende level gaan?')) {
             setLevel(level + 1);
@@ -483,11 +484,13 @@ function levelCompleted() {
     }
 }
 
-function submitScore(score, queue, data) {
+function submitScore(version, level, score, queue, data) {
     var stats = {
-        "score": score,
-        "queue": queue,
-        "data": data
+        'version': version,
+        'level': level,
+        'score': score,
+        'queue': queue,
+        'data': data
     };
     postJson('/api/score/create.php', stats, function (response) {
         console.log(response);
@@ -520,10 +523,10 @@ function updateTableHead() {
 function updateHelp() {
     if (text === undefined) {
         simulationHelp.hidden = true;
-        blocklyArea.style.width = "70%";
+        blocklyArea.style.width = '70%';
     } else {
         simulationHelp.hidden = false;
-        blocklyArea.style.width = "50%";
+        blocklyArea.style.width = '50%';
         if (text.length <= 1) {
             previousButton.hidden = true;
             nextButton.hidden = true;
@@ -911,8 +914,8 @@ function resetInterpreter() {
 
 function startRunner() {
     if (runner === null) {
-        runButton.innerText = "Stop!";
-        runButton.className = "red";
+        runButton.innerText = 'Stop!';
+        runButton.className = 'red';
         runButton.onclick = stopRunner;
         resumeButton.disabled = true;
         stepButton.disabled = true;
@@ -924,8 +927,8 @@ function stopRunner() {
     if (runner) {
         clearTimeout(runner);
         runner = null;
-        runButton.innerText = "Simuleer!";
-        runButton.className = "green";
+        runButton.innerText = 'Simuleer!';
+        runButton.className = 'green';
         runButton.onclick = runInterpreter;
         resumeButton.disabled = false;
         stepButton.disabled = false;
