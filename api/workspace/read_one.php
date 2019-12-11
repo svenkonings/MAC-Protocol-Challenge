@@ -8,7 +8,7 @@ if (!isset($_GET['id'])) {
     return;
 }
 
-include_once '../config/database.php';
+include_once '../config/Database.php';
 include_once '../objects/Workspace.php';
 
 $database = new Database();

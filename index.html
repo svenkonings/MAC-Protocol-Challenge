@@ -21,7 +21,8 @@
     <button id="exportButton" class="green" onclick="saveWorkspaceToFile();">Exporteer!</button>
     <button id="importButton" class="red" onclick="document.getElementById('importInput').click();">Importeer!</button>
     <input id="importInput" type="file" accept="application/xml" onchange="loadWorkspaceFromFile(this.files[0]);" onclick="this.value=null;">
-    <button id="shareButton" class="blue" onclick="saveWorkspaceToDatabase();">Link delen!</button>
+    <button id="shareButton" class="yellow" onclick="saveWorkspaceToDatabase();">Link delen!</button>
+    <button id="scoreButton" class="blue" onclick="showScoreboard();">Scores!</button>
 </nav>
 <div id="simulation">
     <div id="simulationVisualisation">
@@ -52,6 +53,23 @@
             <option value="block">Per blokje</option>
         </select>
         <input id="speedRange" type="range" min="0" max="1000" step="10" value="0" aria-label="Simulatie sneldheid">
+    </div>
+</div>
+<div id="scoreboard" class="gray" hidden>
+    <table id="scoreHeaderTable">
+        <thead>
+        <tr>
+            <td>Wanneer</td>
+            <td>Score</td>
+            <td>Efficiëntie</td>
+            <td>Eerlijkheid</td>
+        </tr>
+        </thead>
+    </table>
+    <div id="scoreBody">
+        <table id="scoreBodyTable">
+            <tbody id="scoreTableBody"></tbody>
+        </table>
     </div>
 </div>
 <div id="blocklyArea"></div>

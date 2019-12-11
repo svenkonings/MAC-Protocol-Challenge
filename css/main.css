@@ -46,7 +46,7 @@ label {
 
 #levels {
     display: inline-block;
-    width: calc(100% - 350px);
+    width: calc(100% - 452px);
     text-align: center;
 }
 
@@ -85,9 +85,13 @@ label {
     cursor: not-allowed;
 }
 
-#exportButton, #importButton, #shareButton {
+#exportButton, #importButton, #shareButton, #scoreButton {
     width: 98px;
     height: 38px;
+}
+
+#scoreButton {
+    float: right;
 }
 
 #importInput {
@@ -127,6 +131,22 @@ label {
 #simulationControls button {
     width: 30%;
     height: 38px;
+}
+
+#scoreboard {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 70%;
+    height: calc(100% - 46px);
+    z-index: 100;
+    float: left;
+    text-align: center;
+}
+
+#scoreBody {
+    height: 100%;
+    overflow-y: scroll;
 }
 
 #blocklyArea {
@@ -201,21 +221,31 @@ table {
     border-collapse: collapse;
 }
 
-td {
+#simulation td {
     width: 16.67%;
     border: 2px solid #9E9E9E;
 }
 
-td:first-child {
+#simulation td:first-child {
     border-right: 2px double black;
 }
 
-td:last-child {
+#simulation td:last-child {
     border-left: 2px double black;
 }
 
-#tableHead td {
-    border-bottom: 2px double black;
+#scoreboard td {
+    width: 25%;
+    border: 2px solid #9E9E9E;
+}
+
+thead td {
+    border-bottom: 2px double black !important;
+}
+
+#scoreboard thead td:not(:first-child):not(:last-child) {
+    border-left: 2px double black;
+    border-right: 2px double black;
 }
 
 tr {

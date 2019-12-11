@@ -240,6 +240,16 @@ function initApi(interpreter, scope) {
 }
 
 var navLevels = document.getElementById('levels');
+var exportButton = document.getElementById('exportButton');
+var importButton = document.getElementById('importButton');
+var shareButton = document.getElementById('shareButton');
+var scoreButton = document.getElementById('scoreButton');
+
+var scoreboard = document.getElementById('scoreboard');
+var scoreHeaderTable = document.getElementById('scoreHeaderTable');
+var scoreBody = document.getElementById('scoreBody');
+var scoreBodyTable = document.getElementById('scoreBodyTable');
+var scoreTableBody = document.getElementById('scoreTableBody');
 
 var simulationVisualisation = document.getElementById('simulationVisualisation');
 var simulationBody = document.getElementById('simulationBody');
@@ -296,7 +306,9 @@ initNavigation();
 
 var onresize = function () {
     simulationBody.style.height = simulationVisualisation.clientHeight - headerTable.offsetHeight + 'px';
+    scoreBody.style.height = scoreboard.clientHeight - scoreHeaderTable.offsetHeight + 'px';
     headerTable.style.width = bodyTable.offsetWidth + 'px';
+    scoreHeaderTable.style.width = scoreBodyTable.offsetWidth + 'px';
 
     // Compute the absolute coordinates and dimensions of blocklyArea.
     var element = blocklyArea;
@@ -384,6 +396,82 @@ Array.prototype.average = function () {
 Object.defineProperty(Array.prototype, "average", {enumerable: false});
 
 /*----------------------------------------------------------------------------------------------------------------------
+                                                       Scoreboard
+----------------------------------------------------------------------------------------------------------------------*/
+
+var scoreUpdater;
+
+function showScoreboard() {
+    scoreboard.hidden = false;
+    scoreButton.innerText = 'Sluiten';
+    scoreButton.className = 'red';
+    scoreButton.onclick = hideScoreboard;
+    exportButton.style.display = 'none';
+    importButton.style.display = 'none';
+    shareButton.style.display = 'none';
+    updateScoreboard();
+    onresize();
+}
+
+function hideScoreboard() {
+    if (scoreUpdater) {
+        clearInterval(scoreUpdater);
+        scoreUpdater = null;
+    }
+    scoreboard.hidden = true;
+    scoreButton.innerText = 'Scores!';
+    scoreButton.className = 'blue';
+    scoreButton.onclick = showScoreboard;
+    exportButton.style.display = 'inline-block';
+    importButton.style.display = 'inline-block';
+    shareButton.style.display = 'inline-block';
+}
+
+function updateScoreboard() {
+    function update() {
+        if (scoreboard.hidden) return;
+        getJson('api/score/read_paging.php?level=' + level, function (response) {
+            scoreTableBody.innerHTML = '';
+            for (var i = 0; i < response.length; i++) {
+                addScore(response[i]);
+            }
+        });
+    }
+
+    update();
+    if (!scoreUpdater) {
+        scoreUpdater = setInterval(update, 5000);
+    }
+}
+
+function addScore(score) {
+    var row = scoreTableBody.insertRow();
+    row.insertCell().innerHTML = score['ts'];
+    row.insertCell().innerHTML = score['score'];
+    row.insertCell().innerHTML = score['efficiency'];
+    row.insertCell().innerHTML = score['fairness'];
+    row.onclick = function () {
+        showScore(score);
+    }
+}
+
+function showScore(score) {
+    resetInterpreter();
+    resetSystem();
+    systemQueue = JSON.parse(score['queue']);
+    systemData = JSON.parse(score['data']);
+    for (currentTimeslot = 0; currentTimeslot < systemData.length; currentTimeslot++) {
+        updateResult();
+        addRow();
+        var currentData = systemData[currentTimeslot];
+        for (currentSystem = 0; currentSystem < currentData.length; currentSystem++) {
+            sendData(currentData[currentSystem]);
+        }
+    }
+    updateResult();
+}
+
+/*----------------------------------------------------------------------------------------------------------------------
                                                        Workspace
 ----------------------------------------------------------------------------------------------------------------------*/
 
@@ -405,7 +493,7 @@ function serializeWorkspace(sanitize) {
 
 function saveWorkspaceToDatabase() {
     var data = {'version': VERSION, 'workspace': serializeWorkspace(true)};
-    postJson('/api/workspace/create.php', data, function (response) {
+    postJson('api/workspace/create.php', data, function (response) {
         var hash = response['id'];
         window.location.hash = hash;
         monitorChanges();
@@ -434,7 +522,7 @@ function saveWorkspaceToFile() {
 }
 
 function loadWorkspaceFromDatabase(hash) {
-    getJson('/api/workspace/read_one.php?id=' + hash, function (response) {
+    getJson('api/workspace/read_one.php?id=' + hash, function (response) {
         loadWorkspace(response['workspace']);
         monitorChanges();
     });
@@ -501,6 +589,7 @@ function loadLevel() {
         updateHelp();
         codeChanged();
         resetSystem();
+        updateScoreboard();
     });
 }
 
@@ -534,7 +623,7 @@ function submitScore(version, level, efficiency, fairness, score, queue, data) {
         'queue': queue,
         'data': data
     };
-    postJson('/api/score/create.php', stats, function (response) {
+    postJson('api/score/create.php', stats, function (response) {
         console.log(response);
     });
 }
@@ -644,6 +733,7 @@ function nextSystem() {
 
 function nextTimeslot() {
     currentTimeslot++;
+    updateResult();
     updateQueue();
     if (!noMoreQueue()) {
         addRow();
@@ -679,11 +769,8 @@ function highlightSystem(systemId) {
     }
 }
 
-function updateQueue() {
+function updateResult() {
     var previousTimeslot = currentTimeslot - 1;
-    if (currentTimeslot > 0) {
-        systemQueue.push(systemQueue[previousTimeslot].slice());
-    }
     if (previousTimeslot >= 0) {
         var sendCell = tableBody.rows[previousTimeslot].cells[systemCount + 1];
         if (isEmptySend(previousTimeslot)) {
@@ -693,13 +780,22 @@ function updateQueue() {
             var control = getControl(previousTimeslot);
             sendCell.innerHTML = control === undefined ? '&check;' : '&check; ' + control;
             sendCell.className = 'green';
-            var sender = getSender(previousTimeslot);
-            if (hasQueue(currentTimeslot, sender)) {
-                systemQueue[currentTimeslot][sender] -= 1;
-            }
         } else {
             sendCell.innerHTML = '&cross;';
             sendCell.className = 'red';
+        }
+    }
+}
+
+function updateQueue() {
+    var previousTimeslot = currentTimeslot - 1;
+    if (currentTimeslot > 0) {
+        systemQueue.push(systemQueue[previousTimeslot].slice());
+    }
+    if (previousTimeslot >= 0 && isSuccess(previousTimeslot)) {
+        var sender = getSender(previousTimeslot);
+        if (hasQueue(currentTimeslot, sender)) {
+            systemQueue[currentTimeslot][sender] -= 1;
         }
     }
     addQueueData(currentTimeslot);
@@ -804,7 +900,8 @@ function calculateEfficiency() {
             }
         }
     }
-    return successes / dataSlots;
+    var efficiency = successes / dataSlots;
+    return +efficiency.toFixed(2);
 }
 
 function systemsWithQueue(timeslots, start, end) {
@@ -856,7 +953,8 @@ function calculateFairness() {
         }, 0);
         windowFairness.push(x / x2);
     }
-    return windowFairness.average();
+    var fairness = windowFairness.average();
+    return +fairness.toFixed(2);
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -960,6 +1058,7 @@ function run() {
 function runInterpreter() {
     resetInterpreter();
     resetSystem();
+    // noinspection JSUnresolvedFunction
     myInterpreter = new Interpreter(code, initApi);
     startRunner();
 }

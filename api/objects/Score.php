@@ -59,10 +59,11 @@ class Score
         }
     }
 
-    public function read($offset, $amount)
+    public function read($level, $offset, $amount)
     {
-        $query = "SELECT id, ts, version, level, efficiency, fairness, score FROM scores ORDER BY score DESC LIMIT :offset, :amount;";
+        $query = "SELECT * FROM scores WHERE level=:level ORDER BY score DESC LIMIT :offset, :amount;";
         $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":level", $level);
         $stmt->bindParam(":amount", $amount, PDO::PARAM_INT);
         $stmt->bindParam(":offset", $offset, PDO::PARAM_INT);
         $stmt->execute();
