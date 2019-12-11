@@ -352,6 +352,38 @@ function postJson(url, data, callback) {
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
+                                                    Array Utilities
+----------------------------------------------------------------------------------------------------------------------*/
+
+Array.prototype.equals = function (array) {
+    if (!array || this.length !== array.length)
+        return false;
+
+    for (var i = 0, l = this.length; i < l; i++) {
+        if (this[i] instanceof Array && array[i] instanceof Array) {
+            if (!this[i].equals(array[i]))
+                return false;
+        } else if (this[i] !== array[i]) {
+            return false;
+        }
+    }
+    return true;
+};
+Object.defineProperty(Array.prototype, "equals", {enumerable: false});
+
+Array.prototype.sum = function () {
+    return this.reduce(function (a, b) {
+        return a + b;
+    }, 0);
+};
+Object.defineProperty(Array.prototype, "sum", {enumerable: false});
+
+Array.prototype.average = function () {
+    return this.sum() / this.length;
+};
+Object.defineProperty(Array.prototype, "average", {enumerable: false});
+
+/*----------------------------------------------------------------------------------------------------------------------
                                                        Workspace
 ----------------------------------------------------------------------------------------------------------------------*/
 
@@ -473,21 +505,31 @@ function loadLevel() {
 }
 
 function levelCompleted() {
-    var score = calculateScore();
-    submitScore(VERSION, level ,score, systemQueue, systemData);
+    var efficiency = calculateEfficiency() * 100;
+    var fairness = calculateFairness() * 100;
+    var score = (efficiency * fairness) / 10;
+    submitScore(VERSION, level, efficiency, fairness, score, systemQueue, systemData);
     if (level < LEVELS) {
-        if (confirm('Score: ' + score + '\nLevel gehaald! Wil je naar het volgende level gaan?')) {
+        if (confirm(scoreString(efficiency, fairness, score) + '\nLevel gehaald! Wil je naar het volgende level gaan?')) {
             setLevel(level + 1);
         }
     } else {
-        alert('Score: ' + score + '\nLevel gehaald!');
+        alert(scoreString(efficiency, fairness, score) + '\nLevel gehaald!');
     }
 }
 
-function submitScore(version, level, score, queue, data) {
+function scoreString(efficiency, fairness, score) {
+    return 'Efficiëntie: ' + efficiency.toFixed(2) +
+        '\nEerlijkheid: ' + fairness.toFixed(2) +
+        '\nScore: ' + score.toFixed(2)
+}
+
+function submitScore(version, level, efficiency, fairness, score, queue, data) {
     var stats = {
         'version': version,
         'level': level,
+        'efficiency': efficiency,
+        'fairness': fairness,
         'score': score,
         'queue': queue,
         'data': data
@@ -750,9 +792,6 @@ function hasSend(timeslot, systemId) {
 /*----------------------------------------------------------------------------------------------------------------------
                                                         Score
 ----------------------------------------------------------------------------------------------------------------------*/
-function calculateScore() {
-    return (calculateEfficiency() * calculateFairness()).toFixed(2);
-}
 
 function calculateEfficiency() {
     var dataSlots = 0;
@@ -768,32 +807,56 @@ function calculateEfficiency() {
     return successes / dataSlots;
 }
 
-function countQueue(timeslot) {
-    var count = 0;
-    for (var system = 0; system < systemCount; system++) {
-        if (hasQueue(timeslot, system)) {
-            count++;
-        }
-    }
-    return count;
-}
-
-function calculateFairness() {
-    var systemFairness = [];
-    for (var system = 0; system < systemCount; system++) {
-        systemFairness[system] = 0;
-        for (var timeslot = 0; timeslot < currentTimeslot; timeslot++) {
+function systemsWithQueue(timeslots, start, end) {
+    var systems = [];
+    loop: for (var system = 0; system < systemCount; system++) {
+        for (var i = start; i < end; i++) {
+            var timeslot = timeslots[i];
             if (hasQueue(timeslot, system)) {
-                systemFairness[system] -= 1 / countQueue(timeslot);
-                if (hasSend(timeslot, system) && isSuccess(timeslot)) {
-                    systemFairness[system] += 1;
-                }
+                systems.push(system);
+                continue loop;
             }
         }
     }
-    return 1000 - systemFairness.reduce(function (a, b) {
-        return a + Math.abs(b);
-    });
+    return systems;
+}
+
+function systemThroughputs(systems, data, start, end) {
+    var throughputs = [];
+    for (var i = 0; i < systems.length; i++) {
+        var throughput = 0;
+        var system = systems[i];
+        for (var j = start; j < end; j++) {
+            if (data[j][system] !== false) {
+                throughput++;
+            }
+        }
+        throughputs.push(throughput);
+    }
+    return throughputs;
+}
+
+// Average Raj Jain's fairness index of a sliding window size 12
+function calculateFairness() {
+    var successSlots = [];
+    var successData = [];
+    for (var timeslot = 0; timeslot < currentTimeslot; timeslot++) {
+        if (isSuccess(timeslot)) {
+            successSlots.push(timeslot);
+            successData.push(systemData[timeslot])
+        }
+    }
+    var windowFairness = [];
+    for (var windowStart = 0, windowEnd = 12; windowEnd < successSlots.length; windowStart++, windowEnd++) {
+        var systems = systemsWithQueue(successSlots, windowStart, windowEnd);
+        var throughputs = systemThroughputs(systems, successData, windowStart, windowEnd);
+        var x = Math.pow(throughputs.sum(), 2);
+        var x2 = systems.length * throughputs.reduce(function (a, b) {
+            return a + Math.pow(b, 2);
+        }, 0);
+        windowFairness.push(x / x2);
+    }
+    return windowFairness.average();
 }
 
 /*----------------------------------------------------------------------------------------------------------------------

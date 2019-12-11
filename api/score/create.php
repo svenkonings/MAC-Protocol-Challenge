@@ -17,12 +17,16 @@ $json = json_decode($file);
 if (
     !empty($json->version) &&
     !empty($json->level) &&
+    !empty($json->efficiency) &&
+    !empty($json->fairness) &&
     !empty($json->score) &&
     !empty($json->queue) &&
     !empty($json->data)
 ) {
     $score->version = $json->version;
     $score->level = $json->level;
+    $score->efficiency = $json->efficiency;
+    $score->fairness = $json->fairness;
     $score->score = $json->score;
     $score->queue = json_encode($json->queue);
     $score->data = json_encode($json->data);
