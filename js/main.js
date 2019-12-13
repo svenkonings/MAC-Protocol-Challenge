@@ -364,8 +364,25 @@ function postJson(url, data, callback) {
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
-                                                    Array Utilities
+                                                    Prototype Utilities
 ----------------------------------------------------------------------------------------------------------------------*/
+
+
+Object.prototype.equals = function (other) {
+    var props = Object.getOwnPropertyNames(this);
+    var otherProps = Object.getOwnPropertyNames(other);
+    if (props.length !== otherProps.length) {
+        return false;
+    }
+    for (var i = 0; i < props.length; i++) {
+        var propName = props[i];
+        if (this[propName] !== other[propName]) {
+            return false;
+        }
+    }
+    return true;
+};
+Object.defineProperty(Object.prototype, "equals", {enumerable: false});
 
 Array.prototype.equals = function (array) {
     if (!array || this.length !== array.length)
@@ -375,7 +392,7 @@ Array.prototype.equals = function (array) {
         if (this[i] instanceof Array && array[i] instanceof Array) {
             if (!this[i].equals(array[i]))
                 return false;
-        } else if (this[i] !== array[i]) {
+        } else if (this[i] !== array[i] && !this[i].equals(array[i])) {
             return false;
         }
     }
@@ -399,6 +416,7 @@ Object.defineProperty(Array.prototype, "average", {enumerable: false});
                                                        Scoreboard
 ----------------------------------------------------------------------------------------------------------------------*/
 
+var response;
 var scoreUpdater;
 
 function showScoreboard() {
@@ -430,10 +448,13 @@ function hideScoreboard() {
 function updateScoreboard() {
     function update() {
         if (scoreboard.hidden) return;
-        getJson('api/score/read_paging.php?level=' + level, function (response) {
-            scoreTableBody.innerHTML = '';
-            for (var i = 0; i < response.length; i++) {
-                addScore(response[i]);
+        getJson('api/score/read_paging.php?level=' + level, function (newResponse) {
+            if (!newResponse.equals(response)) {
+                response = newResponse;
+                scoreTableBody.innerHTML = '';
+                for (var i = 0; i < response.length; i++) {
+                    addScore(response[i]);
+                }
             }
         });
     }
@@ -452,6 +473,13 @@ function addScore(score) {
     row.insertCell().innerHTML = score['fairness'];
     row.onclick = function () {
         showScore(score);
+        this.className = 'blue';
+    };
+}
+
+function clearScoreHighlight() {
+    for (var i = 0; i < scoreTableBody.rows.length; i++) {
+        scoreTableBody.rows[i].className = '';
     }
 }
 
@@ -1068,10 +1096,9 @@ function resetInterpreter() {
     resumeButton.disabled = true;
     stepButton.disabled = true;
     myInterpreter = null;
-    workspace.highlightBlock(null);
-    for (var i = 0; i < systemCount; i++) {
-        tableHead.cells[i + 1].className = '';
-    }
+    highlightBlock(null);
+    highlightSystem(null);
+    clearScoreHighlight();
 }
 
 function startRunner() {

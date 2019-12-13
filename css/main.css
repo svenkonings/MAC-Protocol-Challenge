@@ -194,23 +194,23 @@ label {
 /** Colours **/
 
 .red {
-    background-color: #EF5350;
+    background-color: #EF5350 !important;
 }
 
 .green {
-    background-color: #4CAF50;
+    background-color: #4CAF50 !important;
 }
 
 .blue {
-    background-color: #2196F3;
+    background-color: #2196F3 !important;
 }
 
 .yellow {
-    background-color: #FFC107;
+    background-color: #FFC107 !important;
 }
 
 .gray {
-    background-color: #ddd;
+    background-color: #ddd !important;
 }
 
 /** Table formatting **/
@@ -248,8 +248,17 @@ thead td {
     border-right: 2px double black;
 }
 
-tr {
+#tableBody tr {
     height: 24px;
+}
+
+#scoreTableBody tr {
+    cursor: pointer;
+    height: 48px;
+}
+
+#scoreTableBody tr:hover {
+    background-color: dimgray;
 }
 
 tr:first-child {
