@@ -140,7 +140,6 @@ label {
     width: 70%;
     height: calc(100% - 46px);
     z-index: 100;
-    float: left;
     text-align: center;
 }
 

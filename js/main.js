@@ -571,7 +571,7 @@ function loadWorkspace(text) {
 }
 
 function restoreBlocks() {
-    var url = window.location.href.split('#')[0];
+    var url = window.location.href.split('?')[0];
     if (window.localStorage[url]) {
         loadWorkspace(window.localStorage[url])
     }
@@ -579,7 +579,7 @@ function restoreBlocks() {
 
 function backupOnUnload() {
     window.addEventListener('unload', function () {
-        var url = window.location.href.split('#')[0];
+        var url = window.location.href.split('?')[0];
         window.localStorage.setItem(url, serializeWorkspace(false));
     }, false);
 }
@@ -609,7 +609,7 @@ function loadLevel() {
     getJson('levels/' + level + '.json', function (response) {
         systemCount = response['system_count'];
         queueData = response['queue_data'];
-        workspace.updateToolbox(response['toolbox']); // TODO: Add advanced mode
+        workspace.updateToolbox(response['toolbox']);
         text = response['text'];
         currentText = 0;
         updateNavigation();
