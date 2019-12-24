@@ -1,4 +1,9 @@
 'use strict';
+
+if (!getParam('level')) {
+    window.location.search = 'level=1';
+}
+
 /*----------------------------------------------------------------------------------------------------------------------
                                                    Initialisation
 ----------------------------------------------------------------------------------------------------------------------*/
@@ -293,6 +298,13 @@ function restoreWorkspace() {
 
 restoreWorkspace();
 
+function backupOnUnload() {
+    window.addEventListener('unload', function () {
+        var globalUrl = window.location.href.split('?')[0];
+        window.localStorage.setItem(globalUrl, serializeWorkspace(false));
+    }, false);
+}
+
 function initNavigation() {
     var html = navLevels.innerHTML;
     var lines = html.split('\n');
@@ -385,13 +397,15 @@ Object.prototype.equals = function (other) {
 Object.defineProperty(Object.prototype, "equals", {enumerable: false});
 
 Array.prototype.equals = function (array) {
-    if (!array || this.length !== array.length)
+    if (!array || this.length !== array.length) {
         return false;
+    }
 
     for (var i = 0, l = this.length; i < l; i++) {
         if (this[i] instanceof Array && array[i] instanceof Array) {
-            if (!this[i].equals(array[i]))
+            if (!this[i].equals(array[i])) {
                 return false;
+            }
         } else if (this[i] !== array[i] && !this[i].equals(array[i])) {
             return false;
         }
@@ -399,6 +413,23 @@ Array.prototype.equals = function (array) {
     return true;
 };
 Object.defineProperty(Array.prototype, "equals", {enumerable: false});
+
+Array.prototype.contains = function (value) {
+    var result = false;
+    for (var i = 0; i < this.length; i++) {
+        if (this[i] instanceof Array) {
+            if (this[i].equals(value)) {
+                result = true;
+                break;
+            }
+        } else if (this[i] === value) {
+            result = true;
+            break;
+        }
+    }
+    return result;
+};
+Object.defineProperty(Array.prototype, "contains", {enumerable: false});
 
 Array.prototype.sum = function () {
     return this.reduce(function (a, b) {
@@ -416,6 +447,7 @@ Object.defineProperty(Array.prototype, "average", {enumerable: false});
                                                        Scoreboard
 ----------------------------------------------------------------------------------------------------------------------*/
 
+var scoreIds = [];
 var response;
 var scoreUpdater;
 
@@ -456,6 +488,7 @@ function updateScoreboard() {
                     addScore(response[i]);
                 }
             }
+            highlightOwnScores();
         });
     }
 
@@ -467,6 +500,12 @@ function updateScoreboard() {
 
 function addScore(score) {
     var row = scoreTableBody.insertRow();
+    var idCell = row.insertCell();
+    idCell.style.display = 'none';
+    idCell.innerHTML = score['id'];
+    if (scoreIds.contains(score['id'])) {
+        row.className = 'yellow';
+    }
     row.insertCell().innerHTML = score['ts'];
     row.insertCell().innerHTML = score['score'];
     row.insertCell().innerHTML = score['efficiency'];
@@ -480,6 +519,17 @@ function addScore(score) {
 function clearScoreHighlight() {
     for (var i = 0; i < scoreTableBody.rows.length; i++) {
         scoreTableBody.rows[i].className = '';
+    }
+    highlightOwnScores();
+}
+
+function highlightOwnScores() {
+    for (var i = 0; i < scoreTableBody.rows.length; i++) {
+        var row = scoreTableBody.rows[i];
+        var id = row.cells[0].innerHTML;
+        if (scoreIds.contains(id) && row.className !== 'blue') {
+            row.className = 'yellow';
+        }
     }
 }
 
@@ -497,6 +547,21 @@ function showScore(score) {
         }
     }
     updateResult();
+}
+
+function addScoreId(id) {
+    if (!scoreIds.contains(id)) {
+        scoreIds.push(id);
+        var levelUrl = window.location.href.split('#')[0];
+        window.localStorage.setItem(levelUrl, JSON.stringify(scoreIds))
+    }
+}
+
+function loadScoreIds() {
+    var levelUrl = window.location.href.split('#')[0];
+    if (window.localStorage[levelUrl]) {
+        scoreIds = JSON.parse(window.localStorage[levelUrl]);
+    }
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -577,13 +642,6 @@ function restoreBlocks() {
     }
 }
 
-function backupOnUnload() {
-    window.addEventListener('unload', function () {
-        var url = window.location.href.split('?')[0];
-        window.localStorage.setItem(url, serializeWorkspace(false));
-    }, false);
-}
-
 /*----------------------------------------------------------------------------------------------------------------------
                                                          Levels
 ----------------------------------------------------------------------------------------------------------------------*/
@@ -603,9 +661,7 @@ function setLevel(newLevel) {
 }
 
 function loadLevel() {
-    var levelParam = parseInt(getParam('level'));
-    level = levelParam ? levelParam : 1;
-
+    level = parseInt(getParam('level'));
     getJson('levels/' + level + '.json', function (response) {
         systemCount = response['system_count'];
         queueData = response['queue_data'];
@@ -617,6 +673,7 @@ function loadLevel() {
         updateHelp();
         codeChanged();
         resetSystem();
+        loadScoreIds();
         updateScoreboard();
     });
 }
@@ -652,7 +709,9 @@ function submitScore(version, level, efficiency, fairness, score, queue, data) {
         'data': data
     };
     postJson('api/score/create.php', stats, function (response) {
-        console.log(response);
+        if (!scoreIds.contains(response['id'])) {
+            addScoreId(response['id']);
+        }
     });
 }
 

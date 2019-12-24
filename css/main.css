@@ -193,11 +193,11 @@ label {
 /** Colours **/
 
 .red {
-    background-color: #EF5350 !important;
+    background-color: #EF5350;
 }
 
 .green {
-    background-color: #4CAF50 !important;
+    background-color: #4CAF50;
 }
 
 .blue {
@@ -205,11 +205,11 @@ label {
 }
 
 .yellow {
-    background-color: #FFC107 !important;
+    background-color: #FFC107;
 }
 
 .gray {
-    background-color: #ddd !important;
+    background-color: #ddd;
 }
 
 /** Table formatting **/
