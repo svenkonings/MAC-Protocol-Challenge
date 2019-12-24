@@ -1,0 +1,22 @@
+name: CD
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  FTP-Deploy-Action:
+    name: FTP-Deploy-Action
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: FTP-Deploy-Action
+      uses: SamKirkland/FTP-Deploy-Action@2.0.0
+      env:
+        METHOD: sftp
+        PORT: ${{ secrets.PORT }}
+        FTP_SERVER: ${{ secrets.SERVER }}
+        FTP_USERNAME: ${{ secrets.USERNAME }}
+        FTP_PASSWORD: ${{ secrets.PASSWORD }}
+        REMOTE_DIR: ${{ secrets.DIR }}
+        ARGS: --exclude-glob=.*/
