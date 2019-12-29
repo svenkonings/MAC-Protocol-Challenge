@@ -672,6 +672,7 @@ function loadLevel() {
         updateTableHead();
         updateHelp();
         codeChanged();
+        resetInterpreter();
         resetSystem();
         loadScoreIds();
         updateScoreboard();
@@ -1142,18 +1143,22 @@ function run() {
     }
 }
 
-function runInterpreter() {
+function initInterpreter() {
     resetInterpreter();
     resetSystem();
     // noinspection JSUnresolvedFunction
     myInterpreter = new Interpreter(code, initApi);
+    resumeButton.disabled = false;
+}
+
+function runInterpreter() {
+    initInterpreter();
     startRunner();
 }
 
 function resetInterpreter() {
     stopRunner();
     resumeButton.disabled = true;
-    stepButton.disabled = true;
     myInterpreter = null;
     highlightBlock(null);
     highlightSystem(null);
@@ -1184,15 +1189,16 @@ function stopRunner() {
 }
 
 function step() {
-    if (myInterpreter) {
-        var hasMore = true;
-        newHighlight = false;
-        while (hasMore && !newHighlight) {
-            hasMore = myInterpreter.step();
-        }
-        if (!hasMore) {
-            resetInterpreter();
-        }
-        return hasMore;
+    if (!myInterpreter) {
+        initInterpreter();
     }
+    var hasMore = true;
+    newHighlight = false;
+    while (hasMore && !newHighlight) {
+        hasMore = myInterpreter.step();
+    }
+    if (!hasMore) {
+        resetInterpreter();
+    }
+    return hasMore;
 }
