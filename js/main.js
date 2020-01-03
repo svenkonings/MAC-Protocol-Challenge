@@ -532,7 +532,7 @@ function highlightOwnScores() {
         }
     }
 }
-
+// TODO: Slow for large scoreboards
 function showScore(score) {
     resetInterpreter();
     resetSystem();
@@ -680,8 +680,8 @@ function loadLevel() {
 }
 
 function levelCompleted() {
-    var efficiency = calculateEfficiency() * 100;
-    var fairness = calculateFairness() * 100;
+    var efficiency = calculateEfficiency();
+    var fairness = calculateFairness();
     var score = (efficiency * fairness) / 10;
     submitScore(VERSION, level, efficiency, fairness, score, systemQueue, systemData);
     if (level < LEVELS) {
@@ -988,7 +988,7 @@ function calculateEfficiency() {
             }
         }
     }
-    var efficiency = successes / dataSlots;
+    var efficiency = (successes / dataSlots) * 100;
     return +efficiency.toFixed(2);
 }
 
@@ -1039,7 +1039,7 @@ function calculateFairness() {
         var x2 = systems.length * throughputs.reduce(function (a, b) {
             return a + Math.pow(b, 2);
         }, 0);
-        windowFairness.push(x / x2);
+        windowFairness.push((x / x2) * 100);
     }
     var fairness = windowFairness.average();
     return +fairness.toFixed(2);
@@ -1081,6 +1081,7 @@ function codeChanged() {
         console.error("Couldn't parse Blockly code:\n" + blocklyCode);
         systemCode = blocklyCode;
     }
+    // TODO: More debug possibilities
     code = variableCode +
         "var infiniteLoopCount = 0;\n" +
         "while (nextTimeslot()) {\n" +
@@ -1187,7 +1188,7 @@ function stopRunner() {
         stepButton.disabled = false;
     }
 }
-
+// TODO: Change run, resume, step to play/pause, reset, step?
 function step() {
     if (!myInterpreter) {
         initInterpreter();
