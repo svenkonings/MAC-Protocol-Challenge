@@ -173,15 +173,10 @@ label {
 }
 
 #simulationText {
-    padding: 24px;
+    padding: 16px;
 }
 
 #simulationHelpButtons {
-    position: absolute;
-    height: 55px;
-    left: 0;
-    right: 0;
-    bottom: 0;
     text-align: center;
 }
 

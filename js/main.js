@@ -665,6 +665,7 @@ function loadLevel() {
     getJson('levels/' + level + '.json', function (response) {
         systemCount = response['system_count'];
         queueData = response['queue_data'];
+        workspace.getFlyout().setVisible(false);
         workspace.updateToolbox(response['toolbox']);
         text = response['text'];
         currentText = 0;
