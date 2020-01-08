@@ -477,6 +477,7 @@ function hideScoreboard() {
     shareButton.style.display = 'inline-block';
 }
 
+// TODO: Support multiple pages
 function updateScoreboard() {
     function update() {
         if (scoreboard.hidden) return;
@@ -532,21 +533,38 @@ function highlightOwnScores() {
         }
     }
 }
-// TODO: Slow for large scoreboards
+
 function showScore(score) {
     resetInterpreter();
     resetSystem();
     systemQueue = JSON.parse(score['queue']);
     systemData = JSON.parse(score['data']);
+    var result = '';
+    var clazz;
+    var text;
+
     for (currentTimeslot = 0; currentTimeslot < systemData.length; currentTimeslot++) {
-        updateResult();
-        addRow();
+        result += '<tr><td>' + currentTimeslot + '</td>';
         var currentData = systemData[currentTimeslot];
         for (currentSystem = 0; currentSystem < currentData.length; currentSystem++) {
-            sendData(currentData[currentSystem]);
+            clazz = systemData[currentTimeslot][currentSystem] !== false ? 'blue' : 'gray';
+            text = systemQueue[currentTimeslot][currentSystem];
+            result += '<td class="' + clazz + '">' + text + '</td>';
         }
+        if (isSuccess(currentTimeslot)) {
+            var control = getControl(currentTimeslot);
+            clazz = 'green';
+            text = control === undefined ? '&check;' : '&check; ' + control;
+        } else if (isEmptySend(currentTimeslot)) {
+            clazz = 'yellow';
+            text = '-';
+        } else {
+            clazz = 'red';
+            text = '&cross;';
+        }
+        result += '<td class="' + clazz + '">' + text + '</td></tr>';
     }
-    updateResult();
+    tableBody.innerHTML = result;
 }
 
 function addScoreId(id) {
@@ -700,6 +718,7 @@ function scoreString(efficiency, fairness, score) {
         '\nScore: ' + score.toFixed(2)
 }
 
+// TODO: Move score calculation to server-side
 function submitScore(version, level, efficiency, fairness, score, queue, data) {
     var stats = {
         'version': version,
@@ -1082,7 +1101,7 @@ function codeChanged() {
         console.error("Couldn't parse Blockly code:\n" + blocklyCode);
         systemCode = blocklyCode;
     }
-    // TODO: More debug possibilities
+    // TODO: Show values of variables
     code = variableCode +
         "var infiniteLoopCount = 0;\n" +
         "while (nextTimeslot()) {\n" +
@@ -1189,7 +1208,7 @@ function stopRunner() {
         stepButton.disabled = false;
     }
 }
-// TODO: Change run, resume, step to play/pause, reset, step?
+
 function step() {
     if (!myInterpreter) {
         initInterpreter();
