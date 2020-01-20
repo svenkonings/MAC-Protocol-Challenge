@@ -1,5 +1,7 @@
 'use strict';
 
+// Make sure there's always a level selected
+
 if (!getParam('level')) {
     window.location.search = 'level=1';
 }
@@ -8,8 +10,12 @@ if (!getParam('level')) {
                                                    Initialisation
 ----------------------------------------------------------------------------------------------------------------------*/
 
+// Constants
+
 var VERSION = 1;
 var LEVELS = 6;
+
+// Define custom blocks
 
 Blockly.defineBlocksWithJsonArray([
     {
@@ -118,6 +124,8 @@ Blockly.defineBlocksWithJsonArray([
     }
 ]);
 
+// Define javascript definitions for custom blocks
+
 Blockly.JavaScript['system_has_queue'] = function () {
     return ['hasQueue(currentTimeslot(), currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
 };
@@ -164,11 +172,73 @@ Blockly.JavaScript['math_random_chance'] = function (block) {
     return ['Math.random() * 100 < ' + chance, Blockly.JavaScript.ORDER_RELATIONAL];
 };
 
+// Define functions for adding comments and highlights to blocks
+
+function createSuper(block_type) {
+    Blockly.JavaScript[block_type + '_super'] = Blockly.JavaScript[block_type];
+}
+
+function getSuper(block_type) {
+    return Blockly.JavaScript[block_type + '_super'];
+}
+
+function addHighlightToStatement(block_type) {
+    createSuper(block_type);
+    Blockly.JavaScript[block_type] = function (block) {
+        return 'highlightBlock("' + this.id + '");\n' + getSuper(block_type)(block);
+    };
+}
+
+function addHighlightToExpression(block_type) {
+    createSuper(block_type);
+    Blockly.JavaScript[block_type] = function (block) {
+        var code = getSuper(block_type)(block)[0];
+        return ['setHighlight("' + this.id + '", ' + code + ')', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+    };
+}
+
+function addCommentToExpression(block_type) {
+    createSuper(block_type);
+    Blockly.JavaScript[block_type] = function (block) {
+        var code = getSuper(block_type)(block)[0];
+        return ['setComment("' + this.id + '", ' + code + ')', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+    };
+}
+
+// Add comments and highlights to blocks
+
+addCommentToExpression('system_has_queue');
+addCommentToExpression('system_queue_length');
+addHighlightToStatement('system_no_send');
+addHighlightToStatement('system_send');
+addHighlightToStatement('system_send_control');
+addCommentToExpression('system_sender');
+addCommentToExpression('system_empty_send');
+addCommentToExpression('system_collision');
+addCommentToExpression('system_success');
+addCommentToExpression('system_control');
+
+addHighlightToStatement('controls_if');
+addCommentToExpression('logic_compare');
+addCommentToExpression('logic_operation');
+addCommentToExpression('logic_negate');
+addHighlightToExpression('logic_boolean');
+
+addHighlightToExpression('math_number');
+addCommentToExpression('math_arithmetic');
+addCommentToExpression('math_number_property');
+addCommentToExpression('math_modulo');
+addCommentToExpression('math_random_chance');
+
+addCommentToExpression('variables_get');
+addHighlightToStatement('variables_set');
+
+// Define native functions we can use in the interpreter
+
 Blockly.JavaScript.addReservedWords(
     'highlightBlock,send,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,isCollision,' +
     'currentSystem,currentTimeslot,systemCount,alert,log,infiniteLoopCount'
 );
-Blockly.JavaScript.STATEMENT_PREFIX = 'highlightBlock(%1);\n';
 
 function initApi(interpreter, scope) {
     interpreter.setProperty(scope, 'highlightBlock', interpreter.createNativeFunction(function (blockId) {
@@ -177,6 +247,14 @@ function initApi(interpreter, scope) {
 
     interpreter.setProperty(scope, 'highlightSystem', interpreter.createNativeFunction(function (systemId) {
         return highlightSystem(systemId);
+    }));
+
+    interpreter.setProperty(scope, 'setHighlight', interpreter.createNativeFunction(function (blockId, result) {
+        return setHighlight(blockId, result);
+    }));
+
+    interpreter.setProperty(scope, 'setComment', interpreter.createNativeFunction(function (blockId, result) {
+        return setComment(blockId, result);
     }));
 
     interpreter.setProperty(scope, 'send', interpreter.createNativeFunction(function (result) {
@@ -244,6 +322,8 @@ function initApi(interpreter, scope) {
     }));
 }
 
+// Get page elements
+
 var navLevels = document.getElementById('levels');
 var exportButton = document.getElementById('exportButton');
 var importButton = document.getElementById('importButton');
@@ -276,11 +356,16 @@ var nextButton = document.getElementById('nextButton');
 
 var blocklyArea = document.getElementById('blocklyArea');
 var blocklyDiv = document.getElementById('blocklyDiv');
+
+// Inject Blockly
+
 var workspace = Blockly.inject(blocklyDiv, {
     toolbox: document.getElementById('toolbox'),
     grid: {spacing: 25, length: 3, colour: '#ccc', snap: true},
     zoom: {controls: true, wheel: true, scaleSpeed: 1.05}
 });
+
+// Restore workspace from link hash or local storage
 
 function restoreWorkspace() {
     if (window.location.hash.length > 1) {
@@ -298,12 +383,16 @@ function restoreWorkspace() {
 
 restoreWorkspace();
 
+// Save workspace to local storage on page close
+
 function backupOnUnload() {
     window.addEventListener('unload', function () {
         var globalUrl = window.location.href.split('?')[0];
         window.localStorage.setItem(globalUrl, serializeWorkspace(false));
     }, false);
 }
+
+// Add levels to navigation
 
 function initNavigation() {
     var html = navLevels.innerHTML;
@@ -316,13 +405,15 @@ function initNavigation() {
 
 initNavigation();
 
+// Define onresize with all computed widths and heights
+
 var onresize = function () {
     simulationBody.style.height = simulationVisualisation.clientHeight - headerTable.offsetHeight + 'px';
     scoreBody.style.height = scoreboard.clientHeight - scoreHeaderTable.offsetHeight + 'px';
     headerTable.style.width = bodyTable.offsetWidth + 'px';
     scoreHeaderTable.style.width = scoreBodyTable.offsetWidth + 'px';
 
-    // Compute the absolute coordinates and dimensions of blocklyArea.
+    // Compute the absolute coordinates and dimensions of blocklyArea
     var element = blocklyArea;
     var x = 0;
     var y = 0;
@@ -331,7 +422,7 @@ var onresize = function () {
         y += element.offsetTop;
         element = element.offsetParent;
     } while (element);
-    // Position blocklyDiv over blocklyArea.
+    // Position blocklyDiv over blocklyArea
     blocklyDiv.style.left = x + 'px';
     blocklyDiv.style.top = y + 'px';
     blocklyDiv.style.width = blocklyArea.offsetWidth + 'px';
@@ -477,7 +568,6 @@ function hideScoreboard() {
     shareButton.style.display = 'inline-block';
 }
 
-// TODO: Support multiple pages
 function updateScoreboard() {
     function update() {
         if (scoreboard.hidden) return;
@@ -543,6 +633,7 @@ function showScore(score) {
     var clazz;
     var text;
 
+    // Compute whole table at once for performance
     for (currentTimeslot = 0; currentTimeslot < systemData.length; currentTimeslot++) {
         result += '<tr><td>' + currentTimeslot + '</td>';
         var currentData = systemData[currentTimeslot];
@@ -877,6 +968,40 @@ function highlightSystem(systemId) {
     }
 }
 
+function setHighlight(blockId, result) {
+    if (blockId === null) return result;
+    var block = workspace.getBlockById(blockId);
+    if (block.isShadow()) return result;
+    highlightBlock(blockId);
+    return result;
+}
+
+function setComment(blockId, result) {
+    if (blockId === null) return result;
+    var block = workspace.getBlockById(blockId);
+    if (block.isShadow()) return result;
+    highlightBlock(blockId);
+    block.setEditable(false);
+    var text;
+    if (result === undefined) {
+        text = 'Geen';
+    } else if (typeof result === "boolean") {
+        text = result ? 'Waar' : 'Onwaar';
+    } else {
+        text = result.toString();
+    }
+    block.setCommentText(text);
+    block.getCommentIcon().updateEditable();
+    return result;
+}
+
+function removeComments() {
+    var blocks = workspace.getAllBlocks();
+    for (var i = 0; i < blocks.length; i++) {
+        blocks[i].setCommentText(null);
+    }
+}
+
 function updateResult() {
     var previousTimeslot = currentTimeslot - 1;
     if (previousTimeslot >= 0) {
@@ -990,6 +1115,9 @@ function getControl(timeslot) {
 }
 
 function hasSend(timeslot, systemId) {
+    if (timeslot < 0) {
+        return false
+    }
     return systemData[timeslot][systemId] !== false
 }
 
@@ -1074,7 +1202,7 @@ var myInterpreter = null;
 var runner = null;
 
 function codeChanged() {
-    var newCode = Blockly.JavaScript.workspaceToCode(workspace);
+    var newCode = Blockly.JavaScript.workspaceToCode(workspace).replace(/\/\/.*?\n/gm, '');
     if (blocklyCode === newCode) {
         // Code hasn't changed
         return;
@@ -1101,7 +1229,6 @@ function codeChanged() {
         console.error("Couldn't parse Blockly code:\n" + blocklyCode);
         systemCode = blocklyCode;
     }
-    // TODO: Show values of variables
     code = variableCode +
         "var infiniteLoopCount = 0;\n" +
         "while (nextTimeslot()) {\n" +
@@ -1181,6 +1308,7 @@ function resetInterpreter() {
     stopRunner();
     resumeButton.disabled = true;
     myInterpreter = null;
+    removeComments();
     highlightBlock(null);
     highlightSystem(null);
     clearScoreHighlight();
