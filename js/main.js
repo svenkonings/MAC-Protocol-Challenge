@@ -481,7 +481,7 @@ function hideScoreboard() {
 function updateScoreboard() {
     function update() {
         if (scoreboard.hidden) return;
-        getJson('api/score/read_paging.php?level=' + level, function (newResponse) {
+        getJson('api/score/read_all.php?level=' + level, function (newResponse) {
             if (!newResponse.equals(response)) {
                 response = newResponse;
                 scoreTableBody.innerHTML = '';

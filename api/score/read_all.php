@@ -11,7 +11,4 @@ $score = new Score($db);
 http_response_code(200);
 
 $level = $_GET['level'];
-$page = isset($_GET['page']) ? $_GET['page'] : 1;
-$amount = 50;
-$offset = ($page - 1) * $amount;
-echo json_encode($score->read($level, $offset, $amount));
+echo json_encode($score->read($level));

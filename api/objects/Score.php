@@ -59,14 +59,11 @@ class Score
         }
     }
 
-    public function read($level, $offset, $amount)
+    public function read($level)
     {
-        $query = "SELECT * FROM scores WHERE level=:level ORDER BY score DESC LIMIT :offset, :amount;";
+        $query = "SELECT * FROM scores WHERE level=? ORDER BY score DESC;";
         $stmt = $this->conn->prepare($query);
-        $stmt->bindParam(":level", $level);
-        $stmt->bindParam(":amount", $amount, PDO::PARAM_INT);
-        $stmt->bindParam(":offset", $offset, PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute([$level]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
