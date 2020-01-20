@@ -1133,16 +1133,16 @@ function hasSend(timeslot, systemId) {
 
 function calculateEfficiency() {
     var dataSlots = 0;
-    var successes = 0;
+    var sendSlots = 0;
     for (var timeslot = 0; timeslot < currentTimeslot; timeslot++) {
         if (totalQueue(timeslot) > 0) {
             dataSlots += 1;
-            if (isSuccess(timeslot)) {
-                successes += 1;
+            if (isSuccess(timeslot) && hasQueue(timeslot, getSender(timeslot))) {
+                sendSlots += 1;
             }
         }
     }
-    var efficiency = (successes / dataSlots) * 100;
+    var efficiency = (sendSlots / dataSlots) * 100;
     return +efficiency.toFixed(2);
 }
 
@@ -1177,18 +1177,18 @@ function systemThroughputs(systems, data, start, end) {
 
 // Average Raj Jain's fairness index of a sliding window size 12
 function calculateFairness() {
-    var successSlots = [];
-    var successData = [];
+    var sendSlots = [];
+    var sendData = [];
     for (var timeslot = 0; timeslot < currentTimeslot; timeslot++) {
-        if (isSuccess(timeslot)) {
-            successSlots.push(timeslot);
-            successData.push(systemData[timeslot])
+        if (isSuccess(timeslot) && hasQueue(timeslot, getSender(timeslot))) {
+            sendSlots.push(timeslot);
+            sendData.push(systemData[timeslot])
         }
     }
     var windowFairness = [];
-    for (var windowStart = 0, windowEnd = 12; windowEnd < successSlots.length; windowStart++, windowEnd++) {
-        var systems = systemsWithQueue(successSlots, windowStart, windowEnd);
-        var throughputs = systemThroughputs(systems, successData, windowStart, windowEnd);
+    for (var windowStart = 0, windowEnd = 12; windowEnd < sendSlots.length; windowStart++, windowEnd++) {
+        var systems = systemsWithQueue(sendSlots, windowStart, windowEnd);
+        var throughputs = systemThroughputs(systems, sendData, windowStart, windowEnd);
         var x = Math.pow(throughputs.sum(), 2);
         var x2 = systems.length * throughputs.reduce(function (a, b) {
             return a + Math.pow(b, 2);
