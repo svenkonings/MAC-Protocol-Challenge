@@ -928,6 +928,7 @@ function sendData(value) {
 function nextSystem() {
     currentSystem++;
     highlightSystem(currentSystem);
+    removeComments();
 }
 
 function nextTimeslot() {
@@ -957,7 +958,10 @@ function addRow() {
     }
 }
 
+var ignoreBlockHighlight = false;
+
 function highlightBlock(blockId) {
+    if (ignoreBlockHighlight) return;
     newHighlight = true;
     return workspace.highlightBlock(blockId);
 }
@@ -968,8 +972,9 @@ function highlightSystem(systemId) {
     }
 }
 
+
 function setHighlight(blockId, result) {
-    if (blockId === null) return result;
+    if (ignoreBlockHighlight || blockId === null) return result;
     var block = workspace.getBlockById(blockId);
     if (block.isShadow()) return result;
     highlightBlock(blockId);
@@ -977,7 +982,7 @@ function setHighlight(blockId, result) {
 }
 
 function setComment(blockId, result) {
-    if (blockId === null) return result;
+    if (ignoreBlockHighlight || blockId === null) return result;
     var block = workspace.getBlockById(blockId);
     if (block.isShadow()) return result;
     highlightBlock(blockId);
@@ -996,6 +1001,7 @@ function setComment(blockId, result) {
 }
 
 function removeComments() {
+    if (ignoreBlockHighlight) return;
     var blocks = workspace.getAllBlocks();
     for (var i = 0; i < blocks.length; i++) {
         blocks[i].setCommentText(null);
@@ -1202,7 +1208,9 @@ var myInterpreter = null;
 var runner = null;
 
 function codeChanged() {
-    var newCode = Blockly.JavaScript.workspaceToCode(workspace).replace(/\/\/.*?\n/gm, '');
+    var newCode = Blockly.JavaScript.workspaceToCode(workspace)
+        .replace(/  /g, '') // Avoid indentation differences
+        .replace(/\/\/.*?\n/gm, ''); // Avoid comment differences
     if (blocklyCode === newCode) {
         // Code hasn't changed
         return;
@@ -1269,15 +1277,19 @@ function run() {
         switch (speedSelect.value) {
             case 'timeslot':
                 var oldTimeslot = currentTimeslot;
+                ignoreBlockHighlight = true;
                 while (hasMore && oldTimeslot === currentTimeslot) {
                     hasMore = myInterpreter.step();
                 }
+                ignoreBlockHighlight = false;
                 break;
             case 'system':
                 var oldSystem = currentSystem;
+                ignoreBlockHighlight = true;
                 while (hasMore && oldSystem === currentSystem) {
                     hasMore = myInterpreter.step();
                 }
+                ignoreBlockHighlight = false;
                 break;
             case 'block':
                 hasMore = step();
