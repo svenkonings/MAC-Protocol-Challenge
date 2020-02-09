@@ -13,314 +13,7 @@ if (!getParam('level')) {
 // Constants
 
 var VERSION = 1;
-var LEVELS = 6;
-
-// Define custom blocks
-
-Blockly.defineBlocksWithJsonArray([
-    {
-        "type": "system_has_queue",
-        "message0": "Heeft berichten",
-        "output": "Boolean",
-        "colour": 160,
-        "tooltip": "Geeft terug of het systeem berichten heeft of niet.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_queue_length",
-        "message0": "Aantal berichten",
-        "output": "Number",
-        "colour": 160,
-        "tooltip": "Geeft terug hoeveel berichten het systeem heeft.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_no_send",
-        "message0": "Niet versturen",
-        "previousStatement": null,
-        "colour": 160,
-        "tooltip": "Laat het systeem niet versturen.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_send",
-        "message0": "Versturen",
-        "previousStatement": null,
-        "colour": 160,
-        "tooltip": "Laat het systeem een bericht versturen.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_send_control",
-        "message0": "Versturen met getal %1",
-        "args0": [
-            {
-                "type": "input_value",
-                "name": "CONTROL",
-                "check": "Number"
-            }
-        ],
-        "inputsInline": true,
-        "previousStatement": null,
-        "colour": 160,
-        "tooltip": "Laat het systeem een bericht versturen met controle informatie.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_sender",
-        "message0": "Heeft zelf verstuurd vorig tijdslot",
-        "output": "Boolean",
-        "colour": 160,
-        "tooltip": "Geeft terug of dit systeem heeft verstuurd in het vorige tijdslot.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_empty_send",
-        "message0": "Niks verstuurd vorig tijdslot",
-        "output": "Boolean",
-        "colour": 160,
-        "tooltip": "Geeft terug of er een niks verstuurd is in het vorige tijdslot.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_collision",
-        "message0": "Collisie vorig tijdslot",
-        "output": "Boolean",
-        "colour": 160,
-        "tooltip": "Geeft  terug of er een collisie is in het vorige tijdslot.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_success",
-        "message0": "Succesvol verstuurd vorig tijdslot",
-        "output": "Boolean",
-        "colour": 160,
-        "tooltip": "Geeft terug of er succesvol verstuurd is in het vorige tijdslot.",
-        "helpUrl": ""
-    },
-    {
-        "type": "system_control",
-        "message0": "Getal verstuurd vorig tijdslot",
-        "output": "Number",
-        "colour": 160,
-        "tooltip": "Geeft de controle informatie terug van het systeem dat succesvol gestuurd heeft in het vorige tijdslot.",
-        "helpUrl": ""
-    },
-    {
-        "type": "math_random_chance",
-        "message0": "Kans van %1 %%",
-        "args0": [
-            {
-                "type": "input_value",
-                "name": "CHANCE",
-                "check": "Number"
-            }
-        ],
-        "inputsInline": true,
-        "output": "Boolean",
-        "colour": 230,
-        "tooltip": "Geeft waar of niet waar terug met de opgegeven willekeurige kans",
-        "helpUrl": ""
-    }
-]);
-
-// Define javascript definitions for custom blocks
-
-Blockly.JavaScript['system_has_queue'] = function () {
-    return ['hasQueue(currentTimeslot(), currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript['system_queue_length'] = function () {
-    return ['queueLength(currentTimeslot(), currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript['system_no_send'] = function () {
-    return 'return false;\n';
-};
-
-Blockly.JavaScript['system_send'] = function () {
-    return 'return true;\n';
-};
-
-Blockly.JavaScript['system_send_control'] = function (block) {
-    var control = Blockly.JavaScript.valueToCode(block, 'CONTROL', Blockly.JavaScript.ORDER_ATOMIC);
-    return 'return ' + control + ';\n'
-};
-
-Blockly.JavaScript['system_sender'] = function () {
-    return ['hasSend(currentTimeslot()-1, currentSystem())', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript['system_empty_send'] = function () {
-    return ['isEmptySend(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript['system_collision'] = function () {
-    return ['isCollision(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript['system_success'] = function () {
-    return ['isSuccess(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript['system_control'] = function () {
-    return ['getControl(currentTimeslot()-1)', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-};
-
-Blockly.JavaScript['math_random_chance'] = function (block) {
-    var chance = Blockly.JavaScript.valueToCode(block, 'CHANCE', Blockly.JavaScript.ORDER_ATOMIC);
-    return ['Math.random() * 100 < ' + chance, Blockly.JavaScript.ORDER_RELATIONAL];
-};
-
-// Define functions for adding comments and highlights to blocks
-
-function createSuper(block_type) {
-    Blockly.JavaScript[block_type + '_super'] = Blockly.JavaScript[block_type];
-}
-
-function getSuper(block_type) {
-    return Blockly.JavaScript[block_type + '_super'];
-}
-
-function addHighlightToStatement(block_type) {
-    createSuper(block_type);
-    Blockly.JavaScript[block_type] = function (block) {
-        return 'highlightBlock("' + this.id + '");\n' + getSuper(block_type)(block);
-    };
-}
-
-function addHighlightToExpression(block_type) {
-    createSuper(block_type);
-    Blockly.JavaScript[block_type] = function (block) {
-        var code = getSuper(block_type)(block)[0];
-        return ['setHighlight("' + this.id + '", ' + code + ')', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-    };
-}
-
-function addCommentToExpression(block_type) {
-    createSuper(block_type);
-    Blockly.JavaScript[block_type] = function (block) {
-        var code = getSuper(block_type)(block)[0];
-        return ['setComment("' + this.id + '", ' + code + ')', Blockly.JavaScript.ORDER_FUNCTION_CALL];
-    };
-}
-
-// Add comments and highlights to blocks
-
-addCommentToExpression('system_has_queue');
-addCommentToExpression('system_queue_length');
-addHighlightToStatement('system_no_send');
-addHighlightToStatement('system_send');
-addHighlightToStatement('system_send_control');
-addCommentToExpression('system_sender');
-addCommentToExpression('system_empty_send');
-addCommentToExpression('system_collision');
-addCommentToExpression('system_success');
-addCommentToExpression('system_control');
-
-addHighlightToStatement('controls_if');
-addCommentToExpression('logic_compare');
-addCommentToExpression('logic_operation');
-addCommentToExpression('logic_negate');
-addHighlightToExpression('logic_boolean');
-
-addHighlightToExpression('math_number');
-addCommentToExpression('math_arithmetic');
-addCommentToExpression('math_number_property');
-addCommentToExpression('math_modulo');
-addCommentToExpression('math_random_chance');
-
-addCommentToExpression('variables_get');
-addHighlightToStatement('variables_set');
-
-// Define native functions we can use in the interpreter
-
-Blockly.JavaScript.addReservedWords(
-    'highlightBlock,send,nextSystem,nextTimeslot,highlightSystem,hasQueue,isEmptySend,isSuccess,isCollision,' +
-    'currentSystem,currentTimeslot,systemCount,alert,log,infiniteLoopCount'
-);
-
-function initApi(interpreter, scope) {
-    interpreter.setProperty(scope, 'highlightBlock', interpreter.createNativeFunction(function (blockId) {
-        return highlightBlock(blockId);
-    }));
-
-    interpreter.setProperty(scope, 'highlightSystem', interpreter.createNativeFunction(function (systemId) {
-        return highlightSystem(systemId);
-    }));
-
-    interpreter.setProperty(scope, 'setHighlight', interpreter.createNativeFunction(function (blockId, result) {
-        return setHighlight(blockId, result);
-    }));
-
-    interpreter.setProperty(scope, 'setComment', interpreter.createNativeFunction(function (blockId, result) {
-        return setComment(blockId, result);
-    }));
-
-    interpreter.setProperty(scope, 'send', interpreter.createNativeFunction(function (result) {
-        return send(result);
-    }));
-
-    interpreter.setProperty(scope, 'nextSystem', interpreter.createNativeFunction(function () {
-        return nextSystem();
-    }));
-
-    interpreter.setProperty(scope, 'nextTimeslot', interpreter.createNativeFunction(function () {
-        return nextTimeslot();
-    }));
-
-    interpreter.setProperty(scope, 'hasQueue', interpreter.createNativeFunction(function (timeslot, systemId) {
-        return hasQueue(timeslot, systemId);
-    }));
-
-    interpreter.setProperty(scope, 'queueLength', interpreter.createNativeFunction(function (timeslot, systemId) {
-        return queueLength(timeslot, systemId);
-    }));
-
-    interpreter.setProperty(scope, 'hasSend', interpreter.createNativeFunction(function (timeslot, systemId) {
-        return hasSend(timeslot, systemId);
-    }));
-
-    interpreter.setProperty(scope, 'isEmptySend', interpreter.createNativeFunction(function (timeslot) {
-        return isEmptySend(timeslot);
-    }));
-
-    interpreter.setProperty(scope, 'isCollision', interpreter.createNativeFunction(function (timeslot) {
-        return isCollision(timeslot);
-    }));
-
-    interpreter.setProperty(scope, 'isSuccess', interpreter.createNativeFunction(function (timeslot) {
-        return isSuccess(timeslot);
-    }));
-
-    interpreter.setProperty(scope, 'getControl', interpreter.createNativeFunction(function (timeslot) {
-        return getControl(timeslot);
-    }));
-
-    interpreter.setProperty(scope, 'currentSystem', interpreter.createNativeFunction(function () {
-        return currentSystem;
-    }));
-
-    interpreter.setProperty(scope, 'currentTimeslot', interpreter.createNativeFunction(function () {
-        return currentTimeslot;
-    }));
-
-    interpreter.setProperty(scope, 'systemCount', interpreter.createNativeFunction(function () {
-        return systemCount;
-    }));
-
-    interpreter.setProperty(scope, 'levelCompleted', interpreter.createNativeFunction(function () {
-        return levelCompleted();
-    }));
-
-    interpreter.setProperty(scope, 'alert', interpreter.createNativeFunction(function (text) {
-        return alert(text);
-    }));
-
-    interpreter.setProperty(scope, 'log', interpreter.createNativeFunction(function (text) {
-        return console.log(text);
-    }));
-}
+var SERVER_URL = "https://svenkonings.nl/challenge/";
 
 // Get page elements
 
@@ -397,7 +90,7 @@ function backupOnUnload() {
 function initNavigation() {
     var html = navLevels.innerHTML;
     var lines = html.split('\n');
-    for (var i = 1; i <= LEVELS; i++) {
+    for (var i = 1; i <= LEVELS.length; i++) {
         lines.splice(i + 1, 0, '<button onclick="setLevel(' + i + ');">' + i + '</button>');
     }
     navLevels.innerHTML = lines.join('\n');
@@ -449,7 +142,7 @@ function getParam(variable) {
 
 function getJson(url, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
+    xhr.open('GET', SERVER_URL + url, true);
     xhr.onload = function () {
         callback(JSON.parse(xhr.responseText));
     };
@@ -458,7 +151,7 @@ function getJson(url, callback) {
 
 function postJson(url, data, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open('POST', url, true);
+    xhr.open('POST', SERVER_URL + url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.onload = function () {
         callback(JSON.parse(xhr.responseText));
@@ -771,22 +464,21 @@ function setLevel(newLevel) {
 
 function loadLevel() {
     level = parseInt(getParam('level'));
-    getJson('levels/' + level + '.json', function (response) {
-        systemCount = response['system_count'];
-        queueData = response['queue_data'];
-        workspace.getFlyout().setVisible(false);
-        workspace.updateToolbox(response['toolbox']);
-        text = response['text'];
-        currentText = 0;
-        updateNavigation();
-        updateTableHead();
-        updateHelp();
-        codeChanged();
-        resetInterpreter();
-        resetSystem();
-        loadScoreIds();
-        updateScoreboard();
-    });
+    var levelData = LEVELS[level - 1];
+    systemCount = levelData['system_count'];
+    queueData = levelData['queue_data'];
+    workspace.getFlyout().setVisible(false);
+    workspace.updateToolbox(levelData['toolbox']);
+    text = levelData['text'];
+    currentText = 0;
+    updateNavigation();
+    updateTableHead();
+    updateHelp();
+    codeChanged();
+    resetInterpreter();
+    resetSystem();
+    loadScoreIds();
+    updateScoreboard();
 }
 
 function levelCompleted() {
@@ -794,7 +486,7 @@ function levelCompleted() {
     var fairness = calculateFairness();
     var score = (efficiency * fairness) / 10;
     submitScore(VERSION, level, efficiency, fairness, score, systemQueue, systemData);
-    if (level < LEVELS) {
+    if (level < LEVELS.length) {
         if (confirm(scoreString(efficiency, fairness, score) + '\nLevel gehaald! Wil je naar het volgende level gaan?')) {
             setLevel(level + 1);
         }
@@ -1326,6 +1018,7 @@ function resetInterpreter() {
     clearScoreHighlight();
 }
 
+// TODO: Simuleer/Stop/Hervat, Reset, Stap knoppen
 function startRunner() {
     if (runner === null) {
         runButton.innerText = 'Stop!';
