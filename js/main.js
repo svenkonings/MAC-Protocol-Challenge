@@ -58,6 +58,15 @@ var workspace = Blockly.inject(blocklyDiv, {
     zoom: {controls: true, wheel: true, scaleSpeed: 1.05}
 });
 
+workspace.registerToolboxCategoryCallback("VARIABLES", function (workspace) {
+    var category = workspace.getToolboxCategoryCallback("VARIABLE")(workspace);
+    var block = Blockly.utils.xml.createElement('block');
+    block.setAttribute('type', 'do_once');
+    block.setAttribute('gap', 8);
+    category.splice(1, 0, block);
+    return category;
+});
+
 // Restore workspace from link hash or local storage
 
 function restoreWorkspace() {

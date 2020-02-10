@@ -56,7 +56,7 @@ var LEVELS = [
             "20":[0,10,0,0],
             "25":[0,0,5,0]
         },
-        "toolbox": "<xml id=\"toolbox\"><category name=\"Systeem\" colour=\"#5ba5a5\"><block type=\"system_has_queue\"></block><block type=\"system_queue_length\"></block><block type=\"system_send\"></block><block type=\"system_send_control\"><value name=\"CONTROL\"><shadow type=\"math_number\"><field name=\"NUM\">0</field></shadow></value></block><block type=\"system_no_send\"></block><block type=\"system_sender\"></block><block type=\"system_empty_send\"></block><block type=\"system_collision\"></block><block type=\"system_success\"></block><block type=\"system_control\"></block></category><category name=\"Logica\" colour=\"#5C81A6\"><block type=\"controls_if\"></block><block type=\"logic_compare\"><field name=\"OP\">EQ</field></block><block type=\"logic_operation\"><field name=\"OP\">AND</field></block><block type=\"logic_negate\"></block><block type=\"logic_boolean\"><field name=\"BOOL\">TRUE</field></block></category><category name=\"Rekenen\" colour=\"#5C68A6\"><block type=\"math_number\"><field name=\"NUM\">0</field></block><block type=\"math_arithmetic\"><field name=\"OP\">ADD</field><value name=\"A\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow></value><value name=\"B\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow></value></block><block type=\"math_number_property\"><mutation divisor_input=\"false\"></mutation><field name=\"PROPERTY\">EVEN</field><value name=\"NUMBER_TO_CHECK\"><shadow type=\"math_number\"><field name=\"NUM\">0</field></shadow></value></block><block type=\"math_modulo\"><value name=\"DIVIDEND\"><shadow type=\"math_number\"><field name=\"NUM\">64</field></shadow></value><value name=\"DIVISOR\"><shadow type=\"math_number\"><field name=\"NUM\">10</field></shadow></value></block><block type=\"math_random_chance\"><value name=\"CHANCE\"><shadow type=\"math_number\"><field name=\"NUM\">50</field></shadow></value></block></category><category name=\"Variabelen\" colour=\"#A65C81\" custom=\"VARIABLE\"></category></xml>",
+        "toolbox": "<xml id=\"toolbox\"><category name=\"Systeem\" colour=\"#5ba5a5\"><block type=\"system_has_queue\"></block><block type=\"system_queue_length\"></block><block type=\"system_send\"></block><block type=\"system_send_control\"><value name=\"CONTROL\"><shadow type=\"math_number\"><field name=\"NUM\">0</field></shadow></value></block><block type=\"system_no_send\"></block><block type=\"system_sender\"></block><block type=\"system_empty_send\"></block><block type=\"system_collision\"></block><block type=\"system_success\"></block><block type=\"system_control\"></block></category><category name=\"Logica\" colour=\"#5C81A6\"><block type=\"controls_if\"></block><block type=\"logic_compare\"><field name=\"OP\">EQ</field></block><block type=\"logic_operation\"><field name=\"OP\">AND</field></block><block type=\"logic_negate\"></block><block type=\"logic_boolean\"><field name=\"BOOL\">TRUE</field></block></category><category name=\"Rekenen\" colour=\"#5C68A6\"><block type=\"math_number\"><field name=\"NUM\">0</field></block><block type=\"math_arithmetic\"><field name=\"OP\">ADD</field><value name=\"A\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow></value><value name=\"B\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow></value></block><block type=\"math_number_property\"><mutation divisor_input=\"false\"></mutation><field name=\"PROPERTY\">EVEN</field><value name=\"NUMBER_TO_CHECK\"><shadow type=\"math_number\"><field name=\"NUM\">0</field></shadow></value></block><block type=\"math_modulo\"><value name=\"DIVIDEND\"><shadow type=\"math_number\"><field name=\"NUM\">64</field></shadow></value><value name=\"DIVISOR\"><shadow type=\"math_number\"><field name=\"NUM\">10</field></shadow></value></block><block type=\"math_random_chance\"><value name=\"CHANCE\"><shadow type=\"math_number\"><field name=\"NUM\">50</field></shadow></value></block></category><category name=\"Variabelen\" colour=\"#A65C81\" custom=\"VARIABLES\"></category></xml>",
         "text": [
             "We kunnen nu ook variabelen maken. Deze kunnen we gebruiken om waardes op te slaan om ze later weer te gebruiken. Elk systeem houdt zijn eigen waardes bij. Ze kunnen dus verschillend zijn per systeem."
         ]
@@ -509,7 +509,7 @@ var LEVELS = [
             "785":[1,0,0,0],
             "786":[1,0,0,0]
         },
-        "toolbox": "<xml id=\"toolbox\"><category name=\"Systeem\" colour=\"#5ba5a5\"><block type=\"system_has_queue\"></block><block type=\"system_queue_length\"></block><block type=\"system_send\"></block><block type=\"system_send_control\"><value name=\"CONTROL\"><shadow type=\"math_number\"><field name=\"NUM\">0</field></shadow></value></block><block type=\"system_no_send\"></block><block type=\"system_sender\"></block><block type=\"system_empty_send\"></block><block type=\"system_collision\"></block><block type=\"system_success\"></block><block type=\"system_control\"></block></category><category name=\"Logica\" colour=\"#5C81A6\"><block type=\"controls_if\"></block><block type=\"logic_compare\"><field name=\"OP\">EQ</field></block><block type=\"logic_operation\"><field name=\"OP\">AND</field></block><block type=\"logic_negate\"></block><block type=\"logic_boolean\"><field name=\"BOOL\">TRUE</field></block></category><category name=\"Rekenen\" colour=\"#5C68A6\"><block type=\"math_number\"><field name=\"NUM\">0</field></block><block type=\"math_arithmetic\"><field name=\"OP\">ADD</field><value name=\"A\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow></value><value name=\"B\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow></value></block><block type=\"math_number_property\"><mutation divisor_input=\"false\"></mutation><field name=\"PROPERTY\">EVEN</field><value name=\"NUMBER_TO_CHECK\"><shadow type=\"math_number\"><field name=\"NUM\">0</field></shadow></value></block><block type=\"math_modulo\"><value name=\"DIVIDEND\"><shadow type=\"math_number\"><field name=\"NUM\">64</field></shadow></value><value name=\"DIVISOR\"><shadow type=\"math_number\"><field name=\"NUM\">10</field></shadow></value></block><block type=\"math_random_chance\"><value name=\"CHANCE\"><shadow type=\"math_number\"><field name=\"NUM\">50</field></shadow></value></block></category><category name=\"Variabelen\" colour=\"#A65C81\" custom=\"VARIABLE\"></category></xml>"
+        "toolbox": "<xml id=\"toolbox\"><category name=\"Systeem\" colour=\"#5ba5a5\"><block type=\"system_has_queue\"></block><block type=\"system_queue_length\"></block><block type=\"system_send\"></block><block type=\"system_send_control\"><value name=\"CONTROL\"><shadow type=\"math_number\"><field name=\"NUM\">0</field></shadow></value></block><block type=\"system_no_send\"></block><block type=\"system_sender\"></block><block type=\"system_empty_send\"></block><block type=\"system_collision\"></block><block type=\"system_success\"></block><block type=\"system_control\"></block></category><category name=\"Logica\" colour=\"#5C81A6\"><block type=\"controls_if\"></block><block type=\"logic_compare\"><field name=\"OP\">EQ</field></block><block type=\"logic_operation\"><field name=\"OP\">AND</field></block><block type=\"logic_negate\"></block><block type=\"logic_boolean\"><field name=\"BOOL\">TRUE</field></block></category><category name=\"Rekenen\" colour=\"#5C68A6\"><block type=\"math_number\"><field name=\"NUM\">0</field></block><block type=\"math_arithmetic\"><field name=\"OP\">ADD</field><value name=\"A\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow></value><value name=\"B\"><shadow type=\"math_number\"><field name=\"NUM\">1</field></shadow></value></block><block type=\"math_number_property\"><mutation divisor_input=\"false\"></mutation><field name=\"PROPERTY\">EVEN</field><value name=\"NUMBER_TO_CHECK\"><shadow type=\"math_number\"><field name=\"NUM\">0</field></shadow></value></block><block type=\"math_modulo\"><value name=\"DIVIDEND\"><shadow type=\"math_number\"><field name=\"NUM\">64</field></shadow></value><value name=\"DIVISOR\"><shadow type=\"math_number\"><field name=\"NUM\">10</field></shadow></value></block><block type=\"math_random_chance\"><value name=\"CHANCE\"><shadow type=\"math_number\"><field name=\"NUM\">50</field></shadow></value></block></category><category name=\"Variabelen\" colour=\"#A65C81\" custom=\"VARIABLES\"></category></xml>"
     }
 ];
 
@@ -619,6 +619,24 @@ Blockly.defineBlocksWithJsonArray([
         "colour": 230,
         "tooltip": "Geeft waar of niet waar terug met de opgegeven willekeurige kans",
         "helpUrl": ""
+    },
+    {
+        "type": "do_once",
+        "message0": "Doe één keer %1 %2",
+        "args0": [
+            {
+                "type": "input_dummy"
+            },
+            {
+                "type": "input_statement",
+                "name": "DO0"
+            }
+        ],
+        "previousStatement": null,
+        "nextStatement": null,
+        "colour": 330,
+        "tooltip": "Voer de inhoud van dit blok één keer uit",
+        "helpUrl": ""
     }
 ]);
 
@@ -670,6 +688,17 @@ Blockly.JavaScript['math_random_chance'] = function (block) {
     return ['Math.random() * 100 < ' + chance, Blockly.JavaScript.ORDER_RELATIONAL];
 };
 
+Blockly.JavaScript['do_once'] = function (block) {
+    var statements = Blockly.JavaScript.statementToCode(block, 'DO0');
+    var code =
+        'if (!window.hasOwnProperty("' + block.id + '" + currentSystem())) {\n' +
+        'window["' + block.id + '" + currentSystem()] = true;\n' +
+        statements +
+        '}\n';
+    return code;
+};
+
+
 // Define functions for adding comments and highlights to blocks
 
 function createSuper(block_type) {
@@ -683,7 +712,7 @@ function getSuper(block_type) {
 function addHighlightToStatement(block_type) {
     createSuper(block_type);
     Blockly.JavaScript[block_type] = function (block) {
-        return 'highlightBlock("' + this.id + '");\n' + getSuper(block_type)(block);
+        return 'highlightBlock("' + block.id + '");\n' + getSuper(block_type)(block);
     };
 }
 
@@ -691,7 +720,7 @@ function addHighlightToExpression(block_type) {
     createSuper(block_type);
     Blockly.JavaScript[block_type] = function (block) {
         var code = getSuper(block_type)(block)[0];
-        return ['setHighlight("' + this.id + '", ' + code + ')', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+        return ['setHighlight("' + block.id + '", ' + code + ')', Blockly.JavaScript.ORDER_FUNCTION_CALL];
     };
 }
 
@@ -699,7 +728,7 @@ function addCommentToExpression(block_type) {
     createSuper(block_type);
     Blockly.JavaScript[block_type] = function (block) {
         var code = getSuper(block_type)(block)[0];
-        return ['setComment("' + this.id + '", ' + code + ')', Blockly.JavaScript.ORDER_FUNCTION_CALL];
+        return ['setComment("' + block.id + '", ' + code + ')', Blockly.JavaScript.ORDER_FUNCTION_CALL];
     };
 }
 
@@ -728,6 +757,7 @@ addCommentToExpression('math_number_property');
 addCommentToExpression('math_modulo');
 addCommentToExpression('math_random_chance');
 
+addHighlightToStatement('do_once');
 addCommentToExpression('variables_get');
 addHighlightToStatement('variables_set');
 
