@@ -759,6 +759,7 @@ addCommentToExpression('math_random_chance');
 
 addHighlightToStatement('do_once');
 addCommentToExpression('variables_get');
+addHighlightToStatement('math_change');
 addHighlightToStatement('variables_set');
 
 // Define native functions we can use in the interpreter
