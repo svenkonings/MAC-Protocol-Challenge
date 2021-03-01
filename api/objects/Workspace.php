@@ -18,7 +18,7 @@ class Workspace
     public function create()
     {
         if ($this->exists) return true;
-        $query = "INSERT INTO workspaces SET id=?, version=?, workspace=?;";
+        $query = "INSERT INTO workspaces (id, version, workspace) VALUES (?, ?, ?);";
         $stmt = $this->conn->prepare($query);
         if ($stmt->execute([$this->id, $this->version, $this->workspace])) {
             $this->exists = true;

@@ -23,7 +23,7 @@ class Score
     public function create()
     {
         if ($this->exists) return true;
-        $query = "INSERT INTO scores SET id=?, version=?, level=?, efficiency=?, fairness=?, score=?, queue=?, data=?;";
+        $query = "INSERT INTO scores (id, version, level, efficiency, fairness, score, queue, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
         $stmt = $this->conn->prepare($query);
         if ($stmt->execute([$this->id, $this->version, $this->level, $this->efficiency, $this->fairness, $this->score, $this->queue, $this->data])) {
             $this->exists = true;
