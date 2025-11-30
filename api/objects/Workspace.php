@@ -39,7 +39,7 @@ class Workspace
             if ($this->workspace == $existing_workspace->workspace) {
                 $this->exists = true;
             } else {
-                ++$this->id;
+                $this->id = str_increment($this->id);
                 $stmt->execute([$this->id]);
                 $existing_workspace = $stmt->fetch(PDO::FETCH_OBJ);
             }
