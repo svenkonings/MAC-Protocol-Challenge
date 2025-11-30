@@ -13,7 +13,7 @@ if (!getParam('level')) {
 // Constants
 
 var VERSION = 1;
-var SERVER_URL = "https://svenkonings.nl/challenge/";
+var SERVER_URL = "https://challenge.svenkonings.nl/";
 
 // Get page elements
 
